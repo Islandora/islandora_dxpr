@@ -1,10 +1,10 @@
 type: theme
-core_version_requirement: ^9.4 || ^10 || ^11
+core_version_requirement: ^11
 base theme: dxpr_theme
 
 name: 'Islandora DXPR Theme'
-description: 'Use this STARTERKIT example if you need to build extra css files and templates on top of DXPR Theme.'
-package: DXPR
+description: 'An Islandora subtheme of DXPR Theme.'
+package: Islandora
 
 regions:
   secondary_header: 'Secondary Header'
@@ -48,8 +48,3 @@ libraries:
 #  dxpr_theme/drupal-webform: false
 #  dxpr_theme/dxpr-theme-builder: false
 #  dxpr_theme/helper-classes: false
-
-# Information added by Drupal.org packaging script on 2026-07-29
-version: '8.1.4'
-project: 'dxpr_theme'
-datestamp: 1785305946

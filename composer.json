@@ -1,0 +1,15 @@
+{
+    "name": "drupal/islandora_dxpr",
+    "description": "An Islandora subtheme of DXPR Theme.",
+    "type": "drupal-theme",
+    "license": "GPL-2.0-or-later",
+    "homepage": "https://www.drupal.org/project/islandora_dxpr",
+    "support": {
+        "issues": "https://github.com/Islandora/islandora_dxpr/issues",
+        "source": "https://github.com/Islandora/islandora_dxpr"
+    },
+    "require": {
+        "drupal/core": "^11",
+        "drupal/dxpr_theme": "^8.1"
+    }
+}
