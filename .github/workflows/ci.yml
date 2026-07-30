@@ -1,0 +1,41 @@
+name: CI
+
+on:
+  push:
+    branches: [1.x]
+  pull_request:
+    branches: [1.x]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  functional:
+    name: Drupal ${{ matrix.drupal }} / PHP ${{ matrix.php }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - drupal: '11.3'
+            php: '8.3'
+            image: ghcr.io/islandora/ci:11.3-php8.3@sha256:0166dd83a3aa627175840924563a439b213246a1e78943fabd0c86e6150cab4f
+          - drupal: '11.4'
+            php: '8.4'
+            image: ghcr.io/islandora/ci:11.4-php8.4@sha256:7a5ceda970ce04a2339e18fe893a23ea8bb3acc366556e6284e699e1aeeb6132
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Validate and test
+        env:
+          CI_IMAGE: ${{ matrix.image }}
+        run: ./scripts/ci.sh

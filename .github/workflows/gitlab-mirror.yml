@@ -5,13 +5,17 @@ on:
     branches: [1.x]
     tags: '*'
 
+permissions:
+  contents: read
+
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v7
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       with:
         fetch-depth: 0
+        persist-credentials: false
 
     - name: Mirror + trigger CI
       uses: SvanBoxel/gitlab-mirror-and-ci-action@5c211f993d35256d96b772d995972f434b94e11a # master
@@ -25,4 +29,3 @@ jobs:
         GITLAB_PASSWORD: ${{ secrets.GITLAB_PASSWORD }}
         GITLAB_PROJECT_ID: "237828"
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-

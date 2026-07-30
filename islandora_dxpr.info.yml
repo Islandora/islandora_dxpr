@@ -6,6 +6,10 @@ name: 'Islandora DXPR Theme'
 description: 'An Islandora subtheme of DXPR Theme.'
 package: Islandora
 
+dependencies:
+  - dxpr_theme:dxpr_theme (>=8.1.0)
+  - islandora:islandora (>=2.18.5)
+
 regions:
   secondary_header: 'Secondary Header'
   navigation: 'Navigation'

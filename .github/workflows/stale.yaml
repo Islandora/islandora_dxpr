@@ -3,7 +3,12 @@ on:
   workflow_dispatch:
   schedule:
     - cron: '1 13 * * *'
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: write
+
 jobs:
   stale:
-    uses: Islandora/.github/.github/workflows/stale.yaml@main
-    secrets: inherit
+    uses: Islandora/.github/.github/workflows/stale.yaml@ff4ae8c8d8d3828c41956e0d656c97c8aca24a88
