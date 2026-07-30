@@ -63,9 +63,36 @@ final class ThemeSmokeTest extends BrowserTestBase {
     $this->assertTrue(
       $this->container->get('theme_handler')->themeExists('dxpr_theme'),
     );
+    $this->assertSame(
+      'themes/contrib/islandora_dxpr/favicon.png',
+      $this->config('islandora_dxpr.settings')->get('favicon.path'),
+    );
+    $this->assertFalse(
+      $this->config('islandora_dxpr.settings')->get('favicon.use_default'),
+    );
+    $this->assertSame(
+      '0Ancizar+Serif:300',
+      $this->config('islandora_dxpr.settings')->get('body_font_face'),
+    );
+    $this->assertSame(
+      '#fafafa',
+      $this->config('islandora_dxpr.settings')->get('color_palette_header'),
+    );
+    $this->assertSame(
+      '#fafafa',
+      $this->config('islandora_dxpr.settings')->get('color_palette_footer'),
+    );
+    $this->assertSession()->elementExists(
+      'css',
+      'link[rel~="icon"][href*="islandora_dxpr/favicon.png"]',
+    );
     $this->assertSession()->elementExists(
       'css',
       'link[href*="islandora_dxpr/css/dxpr_theme_subtheme.css"]',
+    );
+    $this->assertSession()->elementExists(
+      'css',
+      '#main-content.islandora-main-content-target[tabindex="-1"]',
     );
   }
 

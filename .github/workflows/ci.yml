@@ -23,6 +23,9 @@ jobs:
       fail-fast: false
       matrix:
         include:
+          - drupal: '10.6'
+            php: '8.3'
+            image: ghcr.io/islandora/ci:10.6-php8.3@sha256:d2181594883dc63b290ef1b78e86e7752a1118a24eda91a8519f17eac3866885
           - drupal: '11.3'
             php: '8.3'
             image: ghcr.io/islandora/ci:11.3-php8.3@sha256:0166dd83a3aa627175840924563a439b213246a1e78943fabd0c86e6150cab4f

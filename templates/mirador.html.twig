@@ -1,0 +1,33 @@
+{#
+/**
+ * @file
+ * Accessible Islandora Mirador wrapper without duplicated HTML attributes.
+ */
+#}
+{%
+  set classes = [
+    'block',
+    'block-' ~ configuration.provider|clean_class,
+    'block-' ~ plugin_id|clean_class,
+    'block-mirador',
+  ]
+%}
+{% set viewer_label = label ?: 'Digital object viewer'|t %}
+
+{{ attach_library('islandora_mirador/mirador') }}
+
+<div{{ attributes.addClass(classes).setAttribute('role', 'region').setAttribute('aria-label', viewer_label) }}>
+  {{ title_prefix }}
+  {% if label %}
+    <h2{{ title_attributes }}>{{ label }}</h2>
+  {% endif %}
+  {{ title_suffix }}
+  {% block content %}
+    <div{{ content_attributes.addClass('content') }}>
+      <div id="{{ mirador_view_id }}" class="mirador-viewer"></div>
+      {{ content }}
+    </div>
+  {% endblock %}
+</div>
+
+{{ attach_library('islandora_mirador/viewer') }}

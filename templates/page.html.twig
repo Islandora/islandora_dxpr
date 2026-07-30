@@ -1,0 +1,61 @@
+{#
+/**
+ * @file
+ * Accessibility-focused overrides for DXPR Theme's page template.
+ *
+ * Keep this file intentionally small so upstream layout improvements continue
+ * to flow into Islandora DXPR.
+ */
+#}
+{% extends '@dxpr_theme/page.html.twig' %}
+
+{% block secondary_header %}
+  {% set container = theme.settings.full_width_containers.cnt_secondary_header ? 'dxpr-theme-fluid' : 'container' %}
+  <div id="secondary-header" class="dxpr-theme-secondary-header clearfix {{ theme.settings.secondary_header_hide|clean_class }}">
+    <div class="{{ container }} secondary-header-container">
+      {% if not theme.settings.full_width_containers.cnt_secondary_header %}
+        <div class="row container-row"><div class="col-sm-12 container-col">
+      {% endif %}
+      {{ page.secondary_header }}
+      {% if not theme.settings.full_width_containers.cnt_secondary_header %}
+        </div></div>
+      {% endif %}
+    </div>
+  </div>
+{% endblock %}
+
+{% block page_title %}
+  {% if title_bg_image_path %}
+    <style>
+      #page-title-full-width-container::after { background-image: url({{ file_url(title_bg_image_path) }}); }
+    </style>
+  {% endif %}
+  <div{{ page_title_attributes }} class="page-title-full-width-container" id="page-title-full-width-container">
+    {% set container = theme.settings.full_width_containers.cnt_page_title ? 'dxpr-theme-fluid' : 'container' %}
+    <div id="page-title" class="{{ container }} page-title-container">
+      {{ page.page_title }}
+    </div>
+  </div>
+{% endblock %}
+
+{% block action_links %}
+  <ul class="action-links">{{ action_links }}</ul>
+{% endblock %}
+
+{% block sidebar_first %}
+  <aside class="col-sm-3" role="complementary" aria-label="{{ 'Primary sidebar'|t }}">
+    {{ page.sidebar_first }}
+  </aside>
+{% endblock %}
+
+{% block sidebar_second %}
+  <aside class="col-sm-3" role="complementary" aria-label="{{ 'Secondary sidebar'|t }}">
+    {{ page.sidebar_second }}
+  </aside>
+{% endblock %}
+
+{% block content %}
+  <div id="main-content" class="islandora-main-content-target" tabindex="-1">
+    {{ page.content }}
+  </div>
+{% endblock %}

@@ -3,6 +3,82 @@
 /**
  * @file
  * DXPR Theme sub-theme.
- *
- * Place your custom PHP code in this file.
  */
+
+use Drupal\Component\Utility\Html;
+use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Render\Element;
+use Drupal\Core\StringTranslation\TranslatableMarkup;
+
+/**
+ * Implements hook_preprocess_block().
+ */
+function islandora_dxpr_preprocess_block(array &$variables): void {
+  $plugin_id = $variables['plugin_id'] ?? '';
+  if ($plugin_id === '') {
+    return;
+  }
+
+  // Give JavaScript and institutional subthemes a stable class that represents
+  // the complete plugin ID, including derivative IDs.
+  $variables['attributes']['class'][] = 'block-plugin-id--' . Html::getClass($plugin_id);
+
+  // Advanced Search currently discovers pager blocks by the class emitted by
+  // the Starter Site's former Olivero templates. Keep that public integration
+  // point while using DXPR's block template so AJAX paging continues to work.
+  if (str_starts_with($plugin_id, 'advanced_search_result_pager:')) {
+    $variables['attributes']['class'][] = 'block-plugin-id--islandora-advanced-search-result-pager';
+  }
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter() for the Advanced Search form.
+ */
+function islandora_dxpr_form_advanced_search_form_alter(
+  array &$form,
+  FormStateInterface $form_state,
+  string $form_id,
+): void {
+  if (!isset($form['ajax']['terms'])) {
+    return;
+  }
+
+  foreach (Element::children($form['ajax']['terms']) as $term_key) {
+    $actions = &$form['ajax']['terms'][$term_key]['actions'];
+    if (isset($actions['add'])) {
+      $label = new TranslatableMarkup('Add another search condition');
+      $actions['add']['#attributes']['aria-label'] = $label;
+      $actions['add']['#attributes']['title'] = $label;
+    }
+    if (isset($actions['remove'])) {
+      $label = new TranslatableMarkup('Remove this search condition');
+      $actions['remove']['#attributes']['aria-label'] = $label;
+      $actions['remove']['#attributes']['title'] = $label;
+    }
+    unset($actions);
+  }
+}
+
+/**
+ * Implements hook_preprocess_HOOK() for facets_result_item.
+ */
+function islandora_dxpr_preprocess_facets_result_item(array &$variables): void {
+  if (!is_array($variables['value'] ?? NULL)) {
+    return;
+  }
+
+  $value = $variables['value']['text']['#title']
+    ?? $variables['raw_value']
+    ?? new TranslatableMarkup('filter');
+  $labels = [
+    'include' => new TranslatableMarkup('Include @value', ['@value' => $value]),
+    'exclude' => new TranslatableMarkup('Exclude @value', ['@value' => $value]),
+  ];
+
+  foreach ($labels as $key => $label) {
+    if (isset($variables['value'][$key])) {
+      $variables['value'][$key]['#attributes']['aria-label'] = $label;
+      $variables['value'][$key]['#attributes']['title'] = $label;
+    }
+  }
+}

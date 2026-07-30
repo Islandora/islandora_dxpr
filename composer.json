@@ -9,7 +9,7 @@
         "source": "https://github.com/Islandora/islandora_dxpr"
     },
     "require": {
-        "drupal/core": "^11",
+        "drupal/core": "^10.3 || ^11",
         "drupal/dxpr_theme": "^v8.1",
         "drupal/islandora": "^2.18.5"
     }
