@@ -1,0 +1,14 @@
+{#
+/**
+ * @file
+ * Adds an explicit accessible name to active facet-removal links.
+ */
+#}
+{% if is_active and raw_value != 'reset_all' %}
+  <span class="visually-hidden">{{ 'Remove filter'|t }}:</span>
+  <span class="facet-item__status js-facet-deactivate" aria-hidden="true">(-)</span>
+{% endif %}
+<span class="facet-item__value">{{ value }}</span>
+{% if show_count %}
+  <span class="facet-item__count">({{ count }})</span>
+{% endif %}
