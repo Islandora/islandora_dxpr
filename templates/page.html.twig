@@ -30,7 +30,10 @@
   </div>
 {% endblock %}
 
-{% block page_title %}
+{# The upstream slot is outside main; render it through our landmark-safe slot. #}
+{% block page_title %}{% endblock %}
+
+{% block islandora_page_title %}
   {% if title_bg_image_path %}
     <style>
       #page-title-full-width-container::after { background-image: url({{ file_url(title_bg_image_path) }}); }
@@ -49,7 +52,12 @@
 {% endblock %}
 
 {% block sidebar_first %}
-  <aside class="col-sm-3" role="complementary" aria-label="{{ 'Primary sidebar'|t }}">
+  <aside
+    class="col-sm-3"
+    role="complementary"
+    aria-label="{{ 'Primary sidebar'|t }}"
+    data-islandora-sidebar="primary"
+  >
     {{ page.sidebar_first }}
   </aside>
 {% endblock %}
@@ -86,6 +94,8 @@
     and not has_sidebar_second ? '' : 'container' %}
 
   <div id="main-content" role="main" class="islandora-main-landmark islandora-main-content-target js-quickedit-main-content clearfix" tabindex="-1">
+    {{ block('islandora_page_title') }}
+
     {% if page.content_top %}
       {% set content_top_container = theme.settings.full_width_containers.cnt_content_top ? 'dxpr-theme-fluid' : 'container' %}
       <div class="{{ content_top_container }} content-top-container islandora-content-top">

@@ -1,0 +1,81 @@
+{#
+/**
+ * @file
+ * Research-friendly fields for the repository search result list and grid.
+ */
+#}
+{% set image = fields.did_image.content %}
+{% set resource_type = fields.field_resource_type.content %}
+{% set year = fields.edtf_year.content %}
+{% set creator = fields.field_linked_agent_name.content %}
+{% set collection = fields.member_of_title.content %}
+{% set publisher = fields.field_publisher.content %}
+{% set description = fields.field_description.content %}
+{% set abstract = fields.processed.content %}
+{% set excerpt = fields.search_api_excerpt.content %}
+{% set has_image = image|render|trim %}
+
+<div class="islandora-search-result__layout{{ has_image ? ' has-image' }}">
+  <div class="islandora-search-result__body">
+    {% if resource_type or year %}
+      <div class="islandora-search-result__eyebrow">
+        {% if resource_type %}
+          <span class="islandora-search-result__type">
+            <span class="visually-hidden">{{ 'Resource type'|t }}:</span>
+            {{ resource_type }}
+          </span>
+        {% endif %}
+        {% if year %}
+          <span class="islandora-search-result__date">
+            <span class="visually-hidden">{{ 'Year'|t }}:</span>
+            {{ year }}
+          </span>
+        {% endif %}
+      </div>
+    {% endif %}
+
+    <h3 class="views-field-title islandora-search-result__title">
+      {{ fields.title.content }}
+    </h3>
+
+    {% if creator %}
+      <div class="islandora-search-result__meta">
+        <span class="islandora-search-result__label">
+          {{ 'Creator or contributor'|t }}:
+        </span>
+        {{ creator }}
+      </div>
+    {% elseif publisher %}
+      <div class="islandora-search-result__meta">
+        <span class="islandora-search-result__label">{{ 'Publisher'|t }}:</span>
+        {{ publisher }}
+      </div>
+    {% endif %}
+
+    {% if collection %}
+      <div class="islandora-search-result__meta">
+        <span class="islandora-search-result__label">{{ 'Part of'|t }}:</span>
+        {{ collection }}
+      </div>
+    {% endif %}
+
+    {% if description|striptags|trim %}
+      <div class="islandora-search-result__description">{{ description }}</div>
+    {% elseif abstract|striptags|trim %}
+      <div class="islandora-search-result__description">{{ abstract }}</div>
+    {% endif %}
+
+    {% if excerpt|striptags|trim %}
+      <div class="islandora-search-result__excerpt">
+        <span class="islandora-search-result__label">{{ 'Matched text'|t }}:</span>
+        {{ excerpt }}
+      </div>
+    {% endif %}
+  </div>
+
+  {% if has_image %}
+    <div class="views-field-did-image islandora-search-result__media">
+      {{ image }}
+    </div>
+  {% endif %}
+</div>

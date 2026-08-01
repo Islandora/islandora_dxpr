@@ -9,4 +9,8 @@
 {% endif %}
 <div class="islandora-card-body">
   <h3>{{ fields.title.content }}</h3>
+  {% set description = fields.field_description.content %}
+  {% if description|striptags|trim %}
+    <div class="islandora-collection-summary">{{ description }}</div>
+  {% endif %}
 </div>

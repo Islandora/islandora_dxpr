@@ -24,6 +24,12 @@ function islandora_dxpr_preprocess_block(array &$variables): void {
   // the complete plugin ID, including derivative IDs.
   $variables['attributes']['class'][] = 'block-plugin-id--' . Html::getClass($plugin_id);
 
+  // An RSS link is useful footer content, but it is not a separate
+  // complementary landmark. Avoid nesting that landmark inside contentinfo.
+  if ($plugin_id === 'node_syndicate_block') {
+    unset($variables['attributes']['role']);
+  }
+
   // Render the compact repository search with a real button so its icon can
   // remain crisp in forced-colors mode while its translated label stays in
   // the accessibility tree. The wrapper is changed here because the Advanced
@@ -75,6 +81,17 @@ function islandora_dxpr_preprocess_block(array &$variables): void {
       if (isset($sort['#options']['search_api_relevance_desc'])) {
         $sort['#options']['search_api_relevance_desc'] =
           new TranslatableMarkup('Relevance');
+      }
+      $sort_labels = [
+        'title_asc' => new TranslatableMarkup('Title (A–Z)'),
+        'title_desc' => new TranslatableMarkup('Title (Z–A)'),
+        'edtf_year_desc' => new TranslatableMarkup('Date (newest first)'),
+        'edtf_year_asc' => new TranslatableMarkup('Date (oldest first)'),
+      ];
+      foreach ($sort_labels as $key => $label) {
+        if (isset($sort['#options'][$key])) {
+          $sort['#options'][$key] = $label;
+        }
       }
       unset($sort);
     }

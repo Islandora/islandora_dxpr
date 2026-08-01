@@ -1,7 +1,7 @@
 {#
 /**
  * @file
- * Presents the primary Resource type facet as an expanded disclosure.
+ * Presents the primary Resource type facet as a disclosure.
  *
  * It retains the fieldset render variables while matching the details markup
  * emitted by Better Exposed Filters for the remaining primary facets.
@@ -19,7 +19,7 @@
   required ? 'js-form-required',
   required ? 'form-required',
 ] %}
-<details{{ attributes.addClass(classes).setAttribute('open', 'open') }}>
+<details{{ attributes.addClass(classes) }}>
   <summary{{ legend.attributes.addClass(summary_classes) }}>
     {{ legend.title }}
   </summary>

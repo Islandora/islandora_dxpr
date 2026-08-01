@@ -230,6 +230,14 @@ final class ThemeSmokeTest extends BrowserTestBase {
       $search_block['content']['actions']['submit']['#theme_wrappers'],
     );
 
+    $syndicate_block = [
+      'plugin_id' => 'node_syndicate_block',
+      'attributes' => ['role' => 'complementary'],
+      'content' => [],
+    ];
+    \islandora_dxpr_preprocess_block($syndicate_block);
+    $this->assertArrayNotHasKey('role', $syndicate_block['attributes']);
+
     $search_submit = $search_block['content']['actions']['submit'];
     $search_submit_markup = (string) $this->container->get('renderer')
       ->renderRoot($search_submit);
@@ -384,7 +392,7 @@ final class ThemeSmokeTest extends BrowserTestBase {
     );
     $this->assertIsString($resource_type_template);
     $this->assertStringContainsString('<details', $resource_type_template);
-    $this->assertStringContainsString(
+    $this->assertStringNotContainsString(
       ".setAttribute('open', 'open')",
       $resource_type_template,
     );
@@ -395,14 +403,24 @@ final class ThemeSmokeTest extends BrowserTestBase {
     $this->assertIsString($page_template);
     $this->assertStringContainsString('id="main-content"', $page_template);
     $this->assertStringContainsString('tabindex="-1"', $page_template);
+    $this->assertStringContainsString(
+      'data-islandora-sidebar="primary"',
+      $page_template,
+    );
     $this->assertStringContainsString('{{ page.content_top }}', $page_template);
     $main_position = strpos($page_template, 'id="main-content"');
     $content_top_position = strpos(
       $page_template,
       "{{ block('islandora_content_top') }}",
     );
+    $page_title_position = strpos(
+      $page_template,
+      "{{ block('islandora_page_title') }}",
+    );
     $this->assertIsInt($main_position);
     $this->assertIsInt($content_top_position);
+    $this->assertIsInt($page_title_position);
+    $this->assertGreaterThan($main_position, $page_title_position);
     $this->assertGreaterThan($main_position, $content_top_position);
 
     $menu_template = file_get_contents(
