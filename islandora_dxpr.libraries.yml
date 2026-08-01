@@ -1,5 +1,11 @@
 global-styling:
+  js:
+    js/islandora_dxpr.js: { minified: false }
   css:
     theme:
       css/islandora_dxpr_defaults.css: { minified: false, weight: 4 }
       css/dxpr_theme_subtheme.css: { minified: false, weight: 6 }
+  dependencies:
+    - bootstrap5/bootstrap5-js-latest
+    - core/drupal
+    - core/once

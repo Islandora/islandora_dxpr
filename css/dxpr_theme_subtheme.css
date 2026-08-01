@@ -210,6 +210,107 @@
   width: 1.25rem;
 }
 
+/* Desktop header order: identity, primary navigation, compact search. */
+.body--dxpr-theme-nav-desktop
+  .dxpr-theme-header--top
+  .navbar-header-wrapper {
+  align-items: center;
+  display: flex;
+  flex-wrap: nowrap;
+}
+
+.body--dxpr-theme-nav-desktop
+  .dxpr-theme-header--top
+  .navbar-header {
+  flex: 0 0 auto;
+  float: none;
+}
+
+.body--dxpr-theme-nav-desktop
+  .dxpr-theme-header--top
+  #dxpr-theme-main-menu {
+  display: block;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.body--dxpr-theme-nav-desktop
+  .dxpr-theme-header--top
+  .region-navigation-collapsible {
+  align-items: center;
+  display: flex;
+  justify-content: flex-end;
+  min-width: 0;
+}
+
+.body--dxpr-theme-nav-desktop
+  .dxpr-theme-header--top
+  .region-navigation-collapsible
+  > .block {
+  float: none;
+}
+
+.body--dxpr-theme-nav-desktop
+  .dxpr-theme-header--top
+  .region-navigation-collapsible
+  > .block-system-menu-blockmain {
+  flex: 1 1 auto;
+  order: 1;
+}
+
+.body--dxpr-theme-nav-desktop
+  .dxpr-theme-header--top
+  .region-navigation-collapsible
+  > .search-form {
+  align-items: center;
+  display: flex;
+  flex: 0 0 auto;
+  order: 2;
+}
+
+.html.body--dxpr-theme-nav-desktop
+  .dxpr-theme-header
+  .islandora-header-search--enhanced {
+  margin: 0 0 0 0.5rem;
+  overflow: visible;
+  transition: width 180ms ease;
+  width: var(--islandora-search-control-size);
+}
+
+.html.body--dxpr-theme-nav-desktop
+  .dxpr-theme-header
+  .islandora-header-search--enhanced.is-expanded {
+  width: min(22rem, 32vw);
+}
+
+.html.body--dxpr-theme-nav-desktop
+  .dxpr-theme-header
+  .islandora-header-search--enhanced
+  .islandora-header-search__input {
+  min-width: 0;
+  transition:
+    opacity 120ms ease,
+    visibility 120ms ease;
+}
+
+.html.body--dxpr-theme-nav-desktop
+  .dxpr-theme-header
+  .islandora-header-search--enhanced:not(.is-expanded)
+  .islandora-header-search__input {
+  border: 0;
+  opacity: 0;
+  padding-inline: 0;
+  pointer-events: none;
+  visibility: hidden;
+}
+
+.html.body--dxpr-theme-nav-desktop
+  .dxpr-theme-header
+  .islandora-header-search--enhanced:not(.is-expanded)
+  .islandora-header-search__submit {
+  border-radius: var(--islandora-radius-sm);
+}
+
 .page-title-full-width-container {
   background: var(--dxt-color-pagetitle, #f5f5f5);
   border-bottom: 0.0625rem solid var(--islandora-border);
@@ -217,13 +318,27 @@
 }
 
 .page-title-container {
-  padding-bottom: clamp(1.25rem, 3vw, 2.25rem);
-  padding-top: clamp(1.25rem, 3vw, 2.25rem);
+  padding-bottom: clamp(0.5rem, 1vw, 0.75rem);
+  padding-top: clamp(0.5rem, 1vw, 0.75rem);
 }
 
 .page-title-container .page-title {
   margin-bottom: 0;
   overflow-wrap: anywhere;
+}
+
+/* Keep the search-page h1 for assistive technology without a title band. */
+.page-route-view-solr-search-content-page-1
+  .page-title-full-width-container {
+  clip: rect(0, 0, 0, 0);
+  clip-path: inset(50%);
+  height: 0.0625rem;
+  margin: -0.0625rem;
+  overflow: hidden;
+  padding: 0;
+  position: absolute;
+  white-space: nowrap;
+  width: 0.0625rem;
 }
 
 .main-container {
@@ -869,7 +984,7 @@
     var(--dxt-color-base, #6844ca) 5%,
     var(--islandora-surface)
   );
-  border: 0.0625rem solid var(--islandora-border);
+  border: 0;
   border-radius: var(--islandora-radius);
   box-shadow: var(--islandora-shadow-sm);
   margin-bottom: clamp(1.5rem, 4vw, 2.5rem);
@@ -905,23 +1020,25 @@
 
 .islandora-advanced-search__condition {
   align-items: center;
-  background: var(--islandora-surface);
-  border: 0.0625rem solid var(--islandora-border);
-  border-radius: var(--islandora-radius-sm);
   display: grid !important;
   gap: 0.625rem;
   grid-template-areas: "conjunction field operator value term-actions";
   grid-template-columns:
-    minmax(6.5rem, 0.75fr)
-    minmax(9rem, 1.25fr)
-    minmax(6.5rem, 0.75fr)
-    minmax(12rem, 2fr)
-    auto;
-  padding: 0.75rem;
+    minmax(5rem, 0.7fr)
+    minmax(8rem, 1.15fr)
+    minmax(5rem, 0.7fr)
+    minmax(10rem, 2fr)
+    max-content;
+  min-width: 0;
 }
 
 .islandora-advanced-search__condition--first {
-  grid-template-areas: "field field operator value term-actions";
+  grid-template-areas: "field operator value term-actions";
+  grid-template-columns:
+    minmax(8rem, 1.15fr)
+    minmax(5rem, 0.7fr)
+    minmax(10rem, 2fr)
+    max-content;
 }
 
 .islandora-advanced-search__conjunction {
@@ -941,10 +1058,22 @@
 }
 
 .islandora-advanced-search__condition > :where(.form-select, .form-control) {
-  height: 2.75rem;
-  margin: 0 !important;
   min-width: 0;
   width: 100%;
+}
+
+.html
+  .islandora-advanced-search__condition
+  > :is(.form-select, .form-control) {
+  background-color: var(--islandora-surface);
+  border-color: var(--islandora-control-border);
+  border-radius: var(--islandora-radius-sm);
+  box-sizing: border-box;
+  box-shadow: none;
+  height: 2.75rem;
+  line-height: 1.5;
+  margin: 0 !important;
+  padding-block: 0.5rem;
 }
 
 .islandora-advanced-search__condition-actions {
@@ -952,6 +1081,7 @@
   display: flex !important;
   gap: 0.375rem;
   grid-area: term-actions;
+  justify-self: end;
   margin: 0;
 }
 
@@ -1180,19 +1310,6 @@ iframe.pdf {
 
   .main-container > .row > aside.col-sm-3 {
     margin-bottom: 2rem;
-  }
-
-  .islandora-advanced-search__condition {
-    grid-template-areas:
-      "conjunction field field operator operator"
-      "value value value value term-actions";
-    grid-template-columns: repeat(5, minmax(0, 1fr));
-  }
-
-  .islandora-advanced-search__condition--first {
-    grid-template-areas:
-      "field field field operator operator"
-      "value value value value term-actions";
   }
 }
 

@@ -97,7 +97,7 @@ divider_color_custom: '#eeeeee'
 page_title_breadcrumbs: 0
 page_title_home_hide: 0
 page_title_align: left
-page_title_height: '120'
+page_title_height: '96'
 page_title_animate: '0'
 page_title_image_opacity: '1'
 page_title_image_style: cover

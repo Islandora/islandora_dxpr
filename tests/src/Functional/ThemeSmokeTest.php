@@ -91,6 +91,10 @@ final class ThemeSmokeTest extends BrowserTestBase {
       0,
       $this->config('islandora_dxpr.settings')->get('page_title_home_hide'),
     );
+    $this->assertSame(
+      '96',
+      $this->config('islandora_dxpr.settings')->get('page_title_height'),
+    );
 
     $theme_path = $this->container->get('extension.list.theme')
       ->getPath('islandora_dxpr');
@@ -130,6 +134,14 @@ final class ThemeSmokeTest extends BrowserTestBase {
       $assets[$structural_asset]['weight'],
       $assets[$defaults_asset]['weight'],
     );
+    $javascript_asset = $theme_path . '/js/islandora_dxpr.js';
+    $javascript_assets = array_column($library['js'], 'data');
+    $this->assertContains($javascript_asset, $javascript_assets);
+    $this->assertContains(
+      'bootstrap5/bootstrap5-js-latest',
+      $library['dependencies'],
+    );
+    $this->assertContains('core/once', $library['dependencies']);
     $structural_css = file_get_contents(
       DRUPAL_ROOT . '/' . $structural_asset,
     );
@@ -145,6 +157,24 @@ final class ThemeSmokeTest extends BrowserTestBase {
     $this->assertStringContainsString(
       '.islandora-advanced-search__condition',
       $structural_css,
+    );
+    $this->assertStringContainsString(
+      'grid-template-areas: "field operator value term-actions"',
+      $structural_css,
+    );
+    $this->assertStringContainsString(
+      '.islandora-header-search--enhanced',
+      $structural_css,
+    );
+    $this->assertStringContainsString(
+      '.page-route-view-solr-search-content-page-1',
+      $structural_css,
+    );
+    $javascript = file_get_contents(DRUPAL_ROOT . '/' . $javascript_asset);
+    $this->assertIsString($javascript);
+    $this->assertStringContainsString(
+      'islandoraDxprHeaderSearch',
+      $javascript,
     );
 
     $search_block = [
@@ -190,6 +220,11 @@ final class ThemeSmokeTest extends BrowserTestBase {
       'Search the repository',
       (string) $search_submit_attributes['aria-label'],
     );
+    $this->assertSame(
+      'tooltip',
+      $search_submit_attributes['data-bs-toggle'],
+    );
+    $this->assertArrayNotHasKey('title', $search_submit_attributes);
     $this->assertSame(
       ['input__submit__islandora_search'],
       $search_block['content']['actions']['submit']['#theme_wrappers'],
@@ -305,6 +340,22 @@ final class ThemeSmokeTest extends BrowserTestBase {
       'Add another search condition',
       (string) $first_condition['actions']['add']['#attributes']['aria-label'],
     );
+    $this->assertSame(
+      'tooltip',
+      $first_condition['actions']['add']['#attributes']['data-bs-toggle'],
+    );
+    $this->assertSame(
+      'Add another search condition',
+      (string) $first_condition['actions']['add']['#attributes']['data-bs-title'],
+    );
+    $this->assertArrayNotHasKey(
+      'title',
+      $first_condition['actions']['add']['#attributes'],
+    );
+    $this->assertSame(10, $first_condition['actions']['add']['#weight']);
+    $second_condition = $advanced_search_form['ajax']['terms'][1];
+    $this->assertSame(0, $second_condition['actions']['remove']['#weight']);
+    $this->assertSame(10, $second_condition['actions']['add']['#weight']);
     $this->assertContains(
       'islandora-advanced-search__reset',
       $advanced_search_form['reset']['#attributes']['class'],

@@ -50,7 +50,11 @@ function islandora_dxpr_preprocess_block(array &$variables): void {
       'islandora-header-search__submit';
     $search_label = new TranslatableMarkup('Search the repository');
     $form['actions']['submit']['#attributes']['aria-label'] = $search_label;
-    $form['actions']['submit']['#attributes']['title'] = $search_label;
+    $form['actions']['submit']['#attributes']['data-bs-placement'] = 'bottom';
+    $form['actions']['submit']['#attributes']['data-bs-title'] = $search_label;
+    $form['actions']['submit']['#attributes']['data-bs-toggle'] = 'tooltip';
+    $form['actions']['submit']['#attributes']['data-islandora-tooltip'] = 'true';
+    unset($form['actions']['submit']['#attributes']['title']);
     $variables['content']['actions']['submit']['#theme_wrappers'] = [
       'input__submit__islandora_search',
     ];
@@ -125,15 +129,28 @@ function islandora_dxpr_form_advanced_search_form_alter(
     $actions = &$term['actions'];
     $actions['#attributes']['class'][] =
       'islandora-advanced-search__condition-actions';
-    if (isset($actions['add'])) {
-      $label = new TranslatableMarkup('Add another search condition');
-      $actions['add']['#attributes']['aria-label'] = $label;
-      $actions['add']['#attributes']['title'] = $label;
+    $action_labels = [
+      'add' => new TranslatableMarkup('Add another search condition'),
+      'remove' => new TranslatableMarkup('Remove this search condition'),
+    ];
+    foreach ($action_labels as $action_key => $label) {
+      if (!isset($actions[$action_key])) {
+        continue;
+      }
+
+      $actions[$action_key]['#attributes']['aria-label'] = $label;
+      $actions[$action_key]['#attributes']['data-bs-placement'] = 'top';
+      $actions[$action_key]['#attributes']['data-bs-title'] = $label;
+      $actions[$action_key]['#attributes']['data-bs-toggle'] = 'tooltip';
+      $actions[$action_key]['#attributes']['data-islandora-tooltip'] = 'true';
+      unset($actions[$action_key]['#attributes']['title']);
     }
     if (isset($actions['remove'])) {
-      $label = new TranslatableMarkup('Remove this search condition');
-      $actions['remove']['#attributes']['aria-label'] = $label;
-      $actions['remove']['#attributes']['title'] = $label;
+      $actions['remove']['#weight'] = 0;
+    }
+    if (isset($actions['add'])) {
+      // Keep the additive action at the far edge in visual and tab order.
+      $actions['add']['#weight'] = 10;
     }
     unset($actions);
     unset($term);
