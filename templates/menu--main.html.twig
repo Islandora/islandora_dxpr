@@ -1,0 +1,149 @@
+{#
+/**
+ * @file
+ * Accessible DXPR-compatible primary menu.
+ *
+ * Keep the dropdown classes aligned with DXPR. Native list and button
+ * semantics avoid claiming an ARIA menubar interaction model that the theme
+ * does not fully implement, while is_current exposes the active destination.
+ */
+#}
+{% import _self as menus %}
+
+{{ menus.menu_links(items, attributes, 0) }}
+
+{% macro menu_links(items, attributes, menu_level) %}
+  {% import _self as menus %}
+  {% if items %}
+    {% if menu_level == 0 %}
+      <ul{{ attributes.addClass('menu', 'nav', 'navbar-nav', 'enhanced-dropdowns', 'level-1') }}>
+    {% elseif menu_level == 1 %}
+      <ul{{ attributes.addClass('dropdown-menu', 'level-2') }}>
+    {% else %}
+      <ul{{ attributes.addClass('dropdown-menu', 'level-3plus') }}>
+    {% endif %}
+
+    {% for item in items %}
+      {% if item.below %}
+        {# clean_unique_id prevents collisions across repeated labels/menus. #}
+        {% set item_dom_id = ('islandora-main-menu-' ~ item.title)|clean_unique_id %}
+        {% set item_link_id = item_dom_id ~ '-link' %}
+        {% set item_menu_id = item_dom_id ~ '-menu' %}
+      {% endif %}
+      {% set item_link_tag = 'a' %}
+      {% if item.url.isRouted and item.url.routeName == '<nolink>' %}
+        {% set item_link_tag = 'span' %}
+      {% elseif item.url.isRouted and item.url.routeName == '<button>' %}
+        {% set item_link_tag = 'button' %}
+      {% endif %}
+      {% set item_url_string = item_link_tag == 'a' ? item.url.toString()|trim : '' %}
+      {% set has_navigable_href = item_url_string != '#' and item_url_string != '' %}
+      {% set current_class = item.is_current ? 'is-active' %}
+
+      {% if menu_level == 0 %}
+        {% if item.below %}
+          {% set item_classes = ['nav-item', 'dropdown', item.in_active_trail ? 'active'] %}
+          <li{{ item.attributes.addClass(item_classes) }}>
+            {% if has_navigable_href %}
+              <div class="bs-dropdown-wrapper">
+                <a class="nav-link {{ current_class }}"
+                  href="{{ item.url }}"
+                  id="{{ item_link_id }}"
+                  {% if item.is_current %}aria-current="page"{% endif %}>{{ item.title }}</a>
+                <button class="bs-dropdown-caret"
+                  type="button"
+                  aria-expanded="false"
+                  data-bs-boundary="viewport"
+                  aria-controls="{{ item_menu_id }}">
+                  <span class="visually-hidden">{{ 'Toggle @title submenu'|t({'@title': item.title}) }}</span>
+                </button>
+              </div>
+            {% else %}
+              <button class="nav-link dropdown-toggle"
+                id="{{ item_link_id }}"
+                type="button"
+                data-bs-toggle="dropdown"
+                data-bs-boundary="viewport"
+                aria-expanded="false"
+                aria-controls="{{ item_menu_id }}">
+                {{ item.title }}
+              </button>
+            {% endif %}
+            {{ menus.menu_links(
+              item.below,
+              create_attribute({
+                'id': item_menu_id,
+                'aria-labelledby': item_link_id
+              }),
+              menu_level + 1
+            ) }}
+          </li>
+        {% else %}
+          {% set item_classes = ['nav-item', item.in_active_trail ? 'active'] %}
+          <li{{ item.attributes.addClass(item_classes) }}>
+            {% if item_link_tag == 'a' %}
+              <a class="nav-link {{ current_class }}"
+                href="{{ item.url }}"
+                {% if item.is_current %}aria-current="page"{% endif %}>{{ item.title }}</a>
+            {% elseif item_link_tag == 'button' %}
+              <button class="nav-link" type="button">{{ item.title }}</button>
+            {% else %}
+              <span class="nav-link">{{ item.title }}</span>
+            {% endif %}
+          </li>
+        {% endif %}
+      {% else %}
+        {% if item.below %}
+          {% set item_classes = ['bs-dropdown-submenu', item.in_active_trail ? 'active'] %}
+          <li{{ item.attributes.addClass(item_classes) }}>
+            {% if has_navigable_href %}
+              <div class="bs-dropdown-item-wrapper">
+                <a class="dropdown-item {{ current_class }}"
+                  href="{{ item.url }}"
+                  id="{{ item_link_id }}"
+                  {% if item.is_current %}aria-current="page"{% endif %}>{{ item.title }}</a>
+                <button class="bs-dropdown-caret"
+                  type="button"
+                  aria-expanded="false"
+                  data-bs-boundary="viewport"
+                  aria-controls="{{ item_menu_id }}">
+                  <span class="visually-hidden">{{ 'Toggle @title submenu'|t({'@title': item.title}) }}</span>
+                </button>
+              </div>
+            {% else %}
+              <button class="dropdown-item dropdown-toggle"
+                id="{{ item_link_id }}"
+                type="button"
+                aria-expanded="false"
+                aria-controls="{{ item_menu_id }}">
+                {{ item.title }}
+              </button>
+            {% endif %}
+            {{ menus.menu_links(
+              item.below,
+              create_attribute({
+                'id': item_menu_id,
+                'aria-labelledby': item_link_id
+              }),
+              menu_level + 1
+            ) }}
+          </li>
+        {% else %}
+          {% set item_classes = [item.in_active_trail ? 'active'] %}
+          <li{{ item.attributes.addClass(item_classes) }}>
+            {% if item_link_tag == 'a' %}
+              <a class="dropdown-item {{ current_class }}"
+                href="{{ item.url }}"
+                {% if item.is_current %}aria-current="page"{% endif %}>{{ item.title }}</a>
+            {% elseif item_link_tag == 'button' %}
+              <button class="dropdown-item" type="button">{{ item.title }}</button>
+            {% else %}
+              <span class="dropdown-item">{{ item.title }}</span>
+            {% endif %}
+          </li>
+        {% endif %}
+      {% endif %}
+    {% endfor %}
+    </ul>
+  {% endif %}
+{% endmacro %}

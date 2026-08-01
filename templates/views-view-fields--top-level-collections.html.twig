@@ -1,0 +1,12 @@
+{#
+/**
+ * @file
+ * Concise collection-card fields for the public collections landing page.
+ */
+#}
+{% if fields.did_image.content %}
+  <div class="views-field-did-image">{{ fields.did_image.content }}</div>
+{% endif %}
+<div class="islandora-card-body">
+  <h3>{{ fields.title.content }}</h3>
+</div>

@@ -9,7 +9,7 @@ Development takes place in the
 
 ## Requirements
 
-- Drupal 11
+- Drupal 10.3 or later in the 10.x series, or Drupal 11
 - DXPR Theme 8.1 or later in the 8.x release series
 
 
@@ -35,6 +35,15 @@ drush config:set system.theme default islandora_dxpr -y
 
 Configure the theme at Appearance > Settings > Islandora DXPR Theme. Add custom
 styles to `css/dxpr_theme_subtheme.css` and template overrides to `templates/`.
+
+Islandora DXPR ships `css/islandora_dxpr_defaults.css` so its accessible color,
+typography, spacing, and component defaults are available immediately after a
+clean installation. DXPR subsequently generates
+`public://dxpr_theme/css/themesettings-islandora_dxpr.css` from the saved theme
+settings. That generated stylesheet loads after the packaged defaults and
+overrides them, allowing site administrators to customize the theme without
+editing its source files. Do not edit the generated public file directly; use
+the theme settings form or an institutional subtheme instead.
 
 
 ## License

@@ -3,11 +3,17 @@
  * @file
  * Accessibility-focused overrides for DXPR Theme's page template.
  *
- * Keep this file intentionally small so upstream layout improvements continue
- * to flow into Islandora DXPR.
+ * The main block follows DXPR's layout logic while bringing content_top into
+ * the main landmark. Keep it aligned with upstream when DXPR changes layout.
  */
 #}
 {% extends '@dxpr_theme/page.html.twig' %}
+
+{%- macro hasContent(region) -%}
+  {%- set keep_tags = '<drupal-render-placeholder><form><embed><hr><iframe><img><input><link><object><script><source><style><video>' -%}
+  {%- set content = region|render|replace({"\n": "", "\r": "", "\t": ""})|striptags(keep_tags)|trim -%}
+  {{- content ? 'TRUE' -}}
+{%- endmacro -%}
 
 {% block secondary_header %}
   {% set container = theme.settings.full_width_containers.cnt_secondary_header ? 'dxpr-theme-fluid' : 'container' %}
@@ -54,8 +60,88 @@
   </aside>
 {% endblock %}
 
+{# The region is rendered by main so it remains inside the main landmark. #}
+{% block content_top %}{% endblock %}
+
+{# Downstream subthemes can safely replace this region inside the landmark. #}
+{% block islandora_content_top %}
+  {{ page.content_top }}
+{% endblock %}
+
+{% block help %}
+  {{ page.help }}
+{% endblock %}
+
 {% block content %}
-  <div id="main-content" class="islandora-main-content-target" tabindex="-1">
-    {{ page.content }}
+  {{ page.content }}
+{% endblock %}
+
+{% block main %}
+  {% set has_sidebar_first = _self.hasContent(page.sidebar_first) %}
+  {% set has_sidebar_second = _self.hasContent(page.sidebar_second) %}
+  {% set container = theme.settings.full_width_containers.cnt_content
+    or node.field_dth_main_content_width.getString() == 'dxpr-theme-util-full-width-content'
+    or node and attribute(theme.settings.full_width_content_types, node.getType)
+    and not has_sidebar_first
+    and not has_sidebar_second ? '' : 'container' %}
+
+  <div id="main-content" role="main" class="islandora-main-landmark islandora-main-content-target js-quickedit-main-content clearfix" tabindex="-1">
+    {% if page.content_top %}
+      {% set content_top_container = theme.settings.full_width_containers.cnt_content_top ? 'dxpr-theme-fluid' : 'container' %}
+      <div class="{{ content_top_container }} content-top-container islandora-content-top">
+        {% if not theme.settings.full_width_containers.cnt_content_top %}
+          <div class="row container-row"><div class="col-sm-12 container-col">
+        {% endif %}
+        {{ block('islandora_content_top') }}
+        {% if not theme.settings.full_width_containers.cnt_content_top %}
+          </div></div>
+        {% endif %}
+      </div>
+    {% endif %}
+
+    <div class="main-container {{ container }} clearfix">
+      {% if container != '' %}
+        <div class="row">
+      {% endif %}
+
+      {% if has_sidebar_first %}
+        {{ block('sidebar_first') }}
+      {% endif %}
+
+      {% if not node.field_dth_main_content_width.getString() %}
+        {% set content_classes = [
+          has_sidebar_first and has_sidebar_second ? 'col-sm-6',
+          has_sidebar_first and not has_sidebar_second ? 'col-sm-9',
+          has_sidebar_second and not has_sidebar_first ? 'col-sm-9',
+          container != '' and not has_sidebar_first and not has_sidebar_second ? 'col-sm-12'
+        ] %}
+      {% else %}
+        {% set col = node.field_dth_main_content_width.getString() %}
+        {% set content_classes = [
+          col == 'dxpr-theme-util-content-center-4-col' ? 'col-md-4 offset-md-4',
+          col == 'dxpr-theme-util-content-center-6-col' ? 'col-md-6 offset-md-3',
+          col == 'dxpr-theme-util-content-center-8-col' ? 'col-md-8 offset-md-2',
+          col == 'dxpr-theme-util-content-center-10-col' ? 'col-md-10 offset-md-1'
+        ] %}
+      {% endif %}
+
+      <section{{ content_attributes.addClass(content_classes) }}>
+        {% if action_links %}
+          {{ block('action_links') }}
+        {% endif %}
+        {% if page.help %}
+          {{ block('help') }}
+        {% endif %}
+        {{ block('content') }}
+      </section>
+
+      {% if has_sidebar_second %}
+        {{ block('sidebar_second') }}
+      {% endif %}
+
+      {% if container != '' %}
+        </div>
+      {% endif %}
+    </div>
   </div>
 {% endblock %}
