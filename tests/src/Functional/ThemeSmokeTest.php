@@ -155,7 +155,19 @@ final class ThemeSmokeTest extends BrowserTestBase {
       $structural_css,
     );
     $this->assertStringContainsString(
-      '.islandora-advanced-search__condition',
+      '.islandora-advanced-search .islandora-advanced-search__condition',
+      $structural_css,
+    );
+    $this->assertStringContainsString(
+      '.islandora-advanced-search .islandora-advanced-search__conditions',
+      $structural_css,
+    );
+    $this->assertStringContainsString(
+      '.islandora-advanced-search .islandora-advanced-search__condition-actions',
+      $structural_css,
+    );
+    $this->assertStringContainsString(
+      '.islandora-advanced-search .islandora-advanced-search__condition--first',
       $structural_css,
     );
     $this->assertStringContainsString(
