@@ -223,7 +223,7 @@ final class ThemeSmokeTest extends BrowserTestBase {
       $structural_css,
     );
     $this->assertStringContainsString(
-      'grid-template-columns: minmax(12rem, 1fr) repeat(4, auto)',
+      'grid-template-columns: minmax(12rem, 1fr) repeat(3, auto)',
       $structural_css,
     );
     $this->assertStringContainsString(
