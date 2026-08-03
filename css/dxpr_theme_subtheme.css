@@ -556,6 +556,50 @@
   -webkit-line-clamp: 3;
 }
 
+/* Collection Members always uses Views Bootstrap's grid markup. Turn those
+ * same cards into a true single-column list when Advanced Search selects List. */
+.view-solr-search-content.view-list
+  .islandora-collection-members
+  > .islandora-card-column {
+  flex: 0 0 100%;
+  max-width: 100%;
+  width: 100%;
+}
+
+.view-solr-search-content.view-list .islandora-result-card {
+  align-items: stretch;
+  flex-direction: row-reverse;
+}
+
+.view-solr-search-content.view-list
+  .islandora-result-card
+  > .views-field-did-image {
+  flex: 0 0 clamp(10rem, 25%, 14rem);
+}
+
+.view-solr-search-content.view-list
+  .islandora-result-card
+  > .views-field-did-image
+  img {
+  aspect-ratio: 4 / 3;
+  height: 100%;
+}
+
+.view-solr-search-content.view-list
+  .islandora-result-card
+  .islandora-card-body {
+  min-width: 0;
+}
+
+.view-solr-search-content.view-list
+  .islandora-result-card
+  .islandora-card-description {
+  display: block;
+  margin-top: 0;
+  overflow: visible;
+  -webkit-line-clamp: unset;
+}
+
 .islandora-collection-summary {
   color: var(--islandora-muted);
   display: -webkit-box;
@@ -2422,6 +2466,23 @@ iframe.pdf {
 }
 
 @media (max-width: 47.999rem) {
+  .view-solr-search-content.view-list .islandora-result-card {
+    flex-direction: column;
+  }
+
+  .view-solr-search-content.view-list
+    .islandora-result-card
+    > .views-field-did-image {
+    flex-basis: auto;
+  }
+
+  .view-solr-search-content.view-list
+    .islandora-result-card
+    > .views-field-did-image
+    img {
+    height: auto;
+  }
+
   .view-solr-search-content.view-grid .islandora-search-results {
     grid-template-columns: minmax(0, 1fr);
   }
