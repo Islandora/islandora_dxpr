@@ -137,36 +137,45 @@ function islandora_dxpr_preprocess_block(array &$variables): void {
   ) {
     $variables['attributes']['class'][] = 'block-plugin-id--islandora-advanced-search-result-pager';
     islandora_dxpr_prepare_search_results_toolbar($variables['content']);
-    if (isset($variables['content']['container']['sort_by'])) {
-      $sort = &$variables['content']['container']['sort_by'];
-      unset(
-        $sort['#options']['search_api_relevance_asc'],
-        $sort['#options_attributes']['search_api_relevance_asc'],
+    islandora_dxpr_prepare_search_results_sort($variables['content']);
+  }
+}
+
+/**
+ * Removes unusable sort choices and supplies concise, self-contained labels.
+ */
+function islandora_dxpr_prepare_search_results_sort(array &$content): void {
+  if (!isset($content['container']['sort_by'])) {
+    return;
+  }
+
+  $sort = &$content['container']['sort_by'];
+  unset(
+    $sort['#options']['search_api_relevance_asc'],
+    $sort['#options_attributes']['search_api_relevance_asc'],
+  );
+  $sort_labels = [
+    'search_api_relevance_desc' =>
+    new TranslatableMarkup('Sort by Relevance'),
+    'title_asc' => new TranslatableMarkup('Sort by Title (A–Z)'),
+    'title_desc' => new TranslatableMarkup('Sort by Title (Z–A)'),
+    'edtf_year_desc' =>
+    new TranslatableMarkup('Sort by Date (newest first)'),
+    'edtf_year_asc' =>
+    new TranslatableMarkup('Sort by Date (oldest first)'),
+  ];
+  foreach ($sort['#options'] as $key => $existing_label) {
+    if (isset($sort_labels[$key])) {
+      $sort['#options'][$key] = $sort_labels[$key];
+    }
+    elseif (!str_starts_with((string) $existing_label, 'Sort by ')) {
+      $sort['#options'][$key] = new TranslatableMarkup(
+        'Sort by @label',
+        ['@label' => (string) $existing_label],
       );
-      $sort_labels = [
-        'search_api_relevance_desc' =>
-        new TranslatableMarkup('Sort by Relevance'),
-        'title_asc' => new TranslatableMarkup('Sort by Title (A–Z)'),
-        'title_desc' => new TranslatableMarkup('Sort by Title (Z–A)'),
-        'edtf_year_desc' =>
-        new TranslatableMarkup('Sort by Date (newest first)'),
-        'edtf_year_asc' =>
-        new TranslatableMarkup('Sort by Date (oldest first)'),
-      ];
-      foreach ($sort['#options'] as $key => $existing_label) {
-        if (isset($sort_labels[$key])) {
-          $sort['#options'][$key] = $sort_labels[$key];
-        }
-        elseif (!str_starts_with((string) $existing_label, 'Sort by ')) {
-          $sort['#options'][$key] = new TranslatableMarkup(
-            'Sort by @label',
-            ['@label' => (string) $existing_label],
-          );
-        }
-      }
-      unset($sort);
     }
   }
+  unset($sort);
 }
 
 /**
@@ -452,6 +461,8 @@ function islandora_dxpr_form_advanced_search_form_alter(
   }
 
   $form['#attributes']['class'][] = 'islandora-advanced-search';
+  $form['#attributes']['aria-label'] =
+    new TranslatableMarkup('Advanced search');
   $form['ajax']['#attributes']['class'][] =
     'islandora-advanced-search__builder';
   $form['ajax']['terms']['#attributes']['class'][] =
@@ -502,6 +513,11 @@ function islandora_dxpr_form_views_exposed_form_alter(
   if (!in_array($display_id, ['page_1', 'block_1'], TRUE)) {
     return;
   }
+
+  $form['#attributes']['class'][] = 'islandora-search-filters';
+  $form['#attributes']['aria-label'] = $display_id === 'block_1'
+    ? new TranslatableMarkup('Filter collection items')
+    : new TranslatableMarkup('Filter search results');
 
   // Advanced Search provides the result toolbar for these displays. Keep one
   // sorting and page-size control set instead of repeating it in the filters.
@@ -622,7 +638,23 @@ function islandora_dxpr_mark_current_menu_items(
  */
 function islandora_dxpr_preprocess_views_view(array &$variables): void {
   $view = $variables['view'] ?? NULL;
-  if (!is_object($view) || $view->id() !== 'top_level_collections') {
+  if (!is_object($view)) {
+    return;
+  }
+
+  if (
+    $view->id() === 'solr_search_content' &&
+    in_array(($view->current_display ?? ''), ['page_1', 'block_1'], TRUE) &&
+    isset($variables['header']['advanced_search_results_toolbar'])
+  ) {
+    $toolbar = &$variables['header']['advanced_search_results_toolbar'];
+    islandora_dxpr_prepare_search_results_toolbar($toolbar);
+    islandora_dxpr_prepare_search_results_sort($toolbar);
+    unset($toolbar);
+    return;
+  }
+
+  if ($view->id() !== 'top_level_collections') {
     return;
   }
 

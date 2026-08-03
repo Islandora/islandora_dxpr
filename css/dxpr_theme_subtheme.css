@@ -900,9 +900,56 @@
 }
 
 /* Facets 3 exposes one shared filter definition through each search display. */
-.region-sidebar-first .bef-exposed-form .form--inline > .form-item,
-.region-sidebar-first
-  .bef-exposed-form
+.islandora-search-filters {
+  margin-block: 1.25rem 1.5rem;
+}
+
+.islandora-search-filters > .form--inline {
+  align-items: start;
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr));
+}
+
+.islandora-search-filters
+  > .form--inline
+  > :where(.form-item, .form-wrapper) {
+  margin: 0;
+  min-width: 0;
+}
+
+.islandora-search-filters
+  > .form--inline
+  > :is(details.bef--secondary, .form-actions) {
+  grid-column: 1 / -1;
+}
+
+.islandora-search-filters .facets-exposed-searchbox {
+  border-bottom: 0.0625rem solid var(--islandora-border);
+  margin: 0;
+  padding: 0.75rem;
+}
+
+.islandora-search-filters .facets-exposed-searchbox__label {
+  color: var(--islandora-muted);
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.html .islandora-search-filters .facets-exposed-searchbox__input {
+  background: var(--islandora-surface);
+  border-color: var(--islandora-control-border);
+  border-radius: var(--islandora-radius-sm);
+  min-height: 2.75rem;
+}
+
+.islandora-search-filters .facets-exposed-searchbox__no-results {
+  color: var(--islandora-muted);
+  margin-block-end: 0;
+}
+
+.islandora-search-filters .form--inline > .form-item,
+.islandora-search-filters
   .form--inline
   .js-form-wrapper
   > .form-item {
@@ -910,12 +957,11 @@
   width: 100%;
 }
 
-.region-sidebar-first .bef-exposed-form .form-item {
+.islandora-search-filters .form-item {
   margin-bottom: 0.875rem;
 }
 
-.region-sidebar-first
-  .bef-exposed-form
+.islandora-search-filters
   .form-item:not(.form-type-checkbox)
   > label {
   color: var(--dxt-color-headings, #1a1a1a);
@@ -925,8 +971,7 @@
   margin-bottom: 0.5rem;
 }
 
-.region-sidebar-first
-  .bef-exposed-form
+.islandora-search-filters
   :where(fieldset.form-wrapper, details.form-wrapper.card) {
   background: var(--islandora-surface);
   border: 0.0625rem solid var(--islandora-border);
@@ -938,7 +983,7 @@
   padding: 0;
 }
 
-.region-sidebar-first .bef-exposed-form fieldset.form-wrapper > legend {
+.islandora-search-filters fieldset.form-wrapper > legend {
   background: var(--dxt-color-silver, #f4f4f4);
   border-bottom: 0.0625rem solid var(--islandora-border);
   color: var(--dxt-color-headings, #1a1a1a);
@@ -951,12 +996,11 @@
   width: 100%;
 }
 
-.region-sidebar-first .bef-exposed-form fieldset > .fieldset-wrapper {
+.islandora-search-filters fieldset > .fieldset-wrapper {
   padding: 0.5rem;
 }
 
-.region-sidebar-first
-  .bef-exposed-form
+.islandora-search-filters
   details.form-wrapper
   > summary.card-header {
   align-items: center;
@@ -977,22 +1021,19 @@
     color 160ms ease;
 }
 
-.region-sidebar-first
-  .bef-exposed-form
+.islandora-search-filters
   details.form-wrapper
   > summary.card-header::marker {
   content: "";
 }
 
-.region-sidebar-first
-  .bef-exposed-form
+.islandora-search-filters
   details.form-wrapper
   > summary.card-header::-webkit-details-marker {
   display: none;
 }
 
-.region-sidebar-first
-  .bef-exposed-form
+.islandora-search-filters
   details.form-wrapper
   > summary.card-header::after {
   border-bottom: 0.125rem solid currentColor;
@@ -1006,8 +1047,7 @@
   width: 0.55rem;
 }
 
-.region-sidebar-first
-  .bef-exposed-form
+.islandora-search-filters
   details.form-wrapper[open]
   > summary.card-header {
   background: var(--dxt-color-silver, #f4f4f4);
@@ -1020,15 +1060,13 @@
   color: var(--dxt-color-base, #6844ca);
 }
 
-.region-sidebar-first
-  .bef-exposed-form
+.islandora-search-filters
   details.form-wrapper[open]
   > summary.card-header::after {
   transform: rotate(225deg);
 }
 
-.region-sidebar-first
-  .bef-exposed-form
+.islandora-search-filters
   details.form-wrapper
   > summary.card-header:hover {
   background: var(--dxt-color-silver, #f4f4f4);
@@ -1039,15 +1077,13 @@
   );
 }
 
-.region-sidebar-first
-  .bef-exposed-form
+.islandora-search-filters
   details.form-wrapper
   > summary.card-header:focus-visible {
   outline-offset: -0.25rem;
 }
 
-.region-sidebar-first
-  .bef-exposed-form
+.islandora-search-filters
   details.form-wrapper
   > .details-wrapper.card-body {
   display: block;
@@ -1055,8 +1091,7 @@
   padding: 0.5rem;
 }
 
-.region-sidebar-first
-  .bef-exposed-form
+.islandora-search-filters
   details.bef--secondary
   .details-wrapper
   > fieldset.form-wrapper {
@@ -1067,8 +1102,7 @@
   overflow: visible;
 }
 
-.region-sidebar-first
-  .bef-exposed-form
+.islandora-search-filters
   details.bef--secondary
   .details-wrapper
   > fieldset.form-wrapper
@@ -1077,12 +1111,12 @@
   padding-inline: 0.5rem;
 }
 
-.region-sidebar-first .bef-checkboxes {
+.islandora-search-filters .bef-checkboxes {
   display: grid;
   gap: 0.125rem;
 }
 
-.region-sidebar-first .bef-checkboxes .form-type-checkbox {
+.islandora-search-filters .bef-checkboxes .form-type-checkbox {
   align-items: flex-start;
   border-radius: var(--islandora-radius-sm);
   display: grid;
@@ -1096,8 +1130,8 @@
     box-shadow 120ms ease;
 }
 
-.region-sidebar-first .bef-checkboxes .form-type-checkbox:hover,
-.region-sidebar-first .bef-checkboxes .form-type-checkbox:focus-within {
+.islandora-search-filters .bef-checkboxes .form-type-checkbox:hover,
+.islandora-search-filters .bef-checkboxes .form-type-checkbox:focus-within {
   background: var(--dxt-color-silver, #f4f4f4);
   background: color-mix(
     in srgb,
@@ -1106,11 +1140,11 @@
   );
 }
 
-.region-sidebar-first .bef-checkboxes .form-type-checkbox:focus-within {
+.islandora-search-filters .bef-checkboxes .form-type-checkbox:focus-within {
   box-shadow: inset 0 0 0 0.125rem var(--dxt-color-base, #6844ca);
 }
 
-.region-sidebar-first .bef-checkboxes input[type="checkbox"] {
+.islandora-search-filters .bef-checkboxes input[type="checkbox"] {
   accent-color: var(--dxt-color-base, #6844ca);
   border-color: var(--islandora-control-border);
   flex: 0 0 auto;
@@ -1120,14 +1154,14 @@
   width: 1.25rem;
 }
 
-.region-sidebar-first
+.islandora-search-filters
   .bef-checkboxes
   input.form-check-input[type="checkbox"]:checked {
   background-color: var(--dxt-color-base, #6844ca);
   border-color: var(--dxt-color-base, #6844ca);
 }
 
-.region-sidebar-first .bef-checkboxes label {
+.islandora-search-filters .bef-checkboxes label {
   cursor: pointer;
   flex: 1 1 auto;
   line-height: 1.45;
@@ -1136,7 +1170,7 @@
   padding: 0.375rem 0;
 }
 
-.region-sidebar-first
+.islandora-search-filters
   .bef-checkboxes
   input[type="checkbox"]:checked
   + label {
@@ -1144,7 +1178,7 @@
   font-weight: 600;
 }
 
-.region-sidebar-first
+.islandora-search-filters
   .bef-checkboxes
   .form-type-checkbox:has(input[type="checkbox"]:checked) {
   background: var(--dxt-color-silver, #f4f4f4);
@@ -1155,7 +1189,7 @@
   );
 }
 
-.region-sidebar-first
+.islandora-search-filters
   .bef-checkboxes
   input[type="checkbox"]:disabled
   + label {
@@ -1164,8 +1198,7 @@
 }
 
 /* Facets 3's exposed range slider keeps precise, editable bounds available. */
-.region-sidebar-first
-  .bef-exposed-form
+.islandora-search-filters
   .facets-exposed-range-slider
   > .fieldset-wrapper {
   display: grid;
@@ -1174,8 +1207,7 @@
   padding: 1rem;
 }
 
-.region-sidebar-first
-  .bef-exposed-form
+.islandora-search-filters
   .facets-exposed-range-slider
   > .fieldset-wrapper
   > .form-item:has([data-facets-exposed-range-slider-min]) {
@@ -1183,8 +1215,7 @@
   grid-row: 1;
 }
 
-.region-sidebar-first
-  .bef-exposed-form
+.islandora-search-filters
   .facets-exposed-range-slider
   > .fieldset-wrapper
   > .form-item:has([data-facets-exposed-range-slider-max]) {
@@ -1192,8 +1223,7 @@
   grid-row: 1;
 }
 
-.region-sidebar-first
-  .bef-exposed-form
+.islandora-search-filters
   .facets-exposed-range-slider
   > .fieldset-wrapper
   > .form-item {
@@ -1203,8 +1233,7 @@
   width: 100%;
 }
 
-.region-sidebar-first
-  .bef-exposed-form
+.islandora-search-filters
   .facets-exposed-range-slider
   > .fieldset-wrapper
   > .form-item
@@ -1218,8 +1247,7 @@
 }
 
 .html
-  .region-sidebar-first
-  .bef-exposed-form
+  .islandora-search-filters
   .facets-exposed-range-slider
   :is(
     [data-facets-exposed-range-slider-min],
@@ -1238,8 +1266,7 @@
 }
 
 .html
-  .region-sidebar-first
-  .bef-exposed-form
+  .islandora-search-filters
   .facets-exposed-range-slider
   :is(
     [data-facets-exposed-range-slider-min],
@@ -1249,8 +1276,7 @@
   color: var(--islandora-muted);
 }
 
-.region-sidebar-first
-  .bef-exposed-form
+.islandora-search-filters
   .facets-exposed-range-slider__slider {
   align-self: center;
   grid-column: 1 / -1;
@@ -1261,8 +1287,7 @@
 }
 
 /* The full track and 44px handles exceed WCAG 2.2's AA target minimum. */
-.region-sidebar-first
-  .bef-exposed-form
+.islandora-search-filters
   .facets-exposed-range-slider__slider.noUi-horizontal {
   background: transparent;
   border: 0;
@@ -1270,8 +1295,7 @@
   height: 2.75rem;
 }
 
-.region-sidebar-first
-  .bef-exposed-form
+.islandora-search-filters
   .facets-exposed-range-slider__slider.noUi-horizontal
   .noUi-connects {
   background: var(--dxt-color-graylighter, #d9d8d8);
@@ -1283,15 +1307,13 @@
   transform: translateY(-50%);
 }
 
-.region-sidebar-first
-  .bef-exposed-form
+.islandora-search-filters
   .facets-exposed-range-slider__slider
   .noUi-connect {
   background: var(--dxt-color-base, #6844ca);
 }
 
-.region-sidebar-first
-  .bef-exposed-form
+.islandora-search-filters
   .facets-exposed-range-slider__slider.noUi-horizontal
   .noUi-handle {
   background: transparent;
@@ -1305,16 +1327,14 @@
   width: 2.75rem;
 }
 
-.region-sidebar-first
-  .bef-exposed-form
+.islandora-search-filters
   .facets-exposed-range-slider__slider.noUi-horizontal.noUi-txt-dir-rtl
   .noUi-handle {
   inset-inline-end: auto;
   inset-inline-start: -1.375rem;
 }
 
-.region-sidebar-first
-  .bef-exposed-form
+.islandora-search-filters
   .facets-exposed-range-slider__slider
   .noUi-handle::before {
   background: var(--islandora-surface);
@@ -1335,26 +1355,22 @@
 }
 
 [dir="rtl"]
-  .region-sidebar-first
-  .bef-exposed-form
+  .islandora-search-filters
   .facets-exposed-range-slider__slider
   .noUi-handle::before {
   transform: translate(50%, -50%);
 }
 
-.region-sidebar-first
-  .bef-exposed-form
+.islandora-search-filters
   .facets-exposed-range-slider__slider
   .noUi-handle::after {
   display: none;
 }
 
-.region-sidebar-first
-  .bef-exposed-form
+.islandora-search-filters
   .facets-exposed-range-slider__slider:not([disabled])
   .noUi-handle:hover::before,
-.region-sidebar-first
-  .bef-exposed-form
+.islandora-search-filters
   .facets-exposed-range-slider__slider
   .noUi-handle.noUi-active::before {
   background: color-mix(
@@ -1368,56 +1384,48 @@
 }
 
 [dir="rtl"]
-  .region-sidebar-first
-  .bef-exposed-form
+  .islandora-search-filters
   .facets-exposed-range-slider__slider:not([disabled])
   .noUi-handle:hover::before,
 [dir="rtl"]
-  .region-sidebar-first
-  .bef-exposed-form
+  .islandora-search-filters
   .facets-exposed-range-slider__slider
   .noUi-handle.noUi-active::before {
   transform: translate(50%, -50%) scale(1.08);
 }
 
 .html
-  .region-sidebar-first
-  .bef-exposed-form
+  .islandora-search-filters
   .facets-exposed-range-slider
   .noUi-handle:focus-visible {
   outline: 0.1875rem solid var(--islandora-focus);
   outline-offset: -0.1875rem;
 }
 
-.region-sidebar-first
-  .bef-exposed-form
+.islandora-search-filters
   .facets-exposed-range-slider__slider[disabled] {
   opacity: 0.65;
 }
 
-.region-sidebar-first
-  .bef-exposed-form
+.islandora-search-filters
   .facets-exposed-range-slider__slider[disabled]
   .noUi-handle {
   cursor: not-allowed;
 }
 
-.region-sidebar-first
-  .bef-exposed-form
+.islandora-search-filters
   .facets-exposed-range-slider__slider[disabled]
   .noUi-handle::before {
   border-color: var(--islandora-muted);
 }
 
-.region-sidebar-first
-  .bef-exposed-form
+.islandora-search-filters
   .facets-exposed-range-slider--tooltips-enabled
   .facets-exposed-range-slider__slider {
   margin-block-start: 1.75rem;
 }
 
-.region-sidebar-first
-  .bef-exposed-form
+.islandora-search-filters
   .facets-exposed-range-slider
   .noUi-tooltip {
   background: var(--dxt-color-headings, #1a1a1a);
@@ -1431,16 +1439,14 @@
   padding: 0.35rem 0.5rem;
 }
 
-.region-sidebar-first
-  .bef-exposed-form
+.islandora-search-filters
   .facets-exposed-range-slider
   .noUi-horizontal
   .noUi-tooltip {
   bottom: calc(100% - 0.25rem);
 }
 
-.region-sidebar-first
-  .bef-exposed-form
+.islandora-search-filters
   .facets-exposed-range-slider__slider.noUi-vertical {
   background: transparent;
   border: 0;
@@ -1450,8 +1456,7 @@
   width: 2.75rem;
 }
 
-.region-sidebar-first
-  .bef-exposed-form
+.islandora-search-filters
   .facets-exposed-range-slider__slider.noUi-vertical
   .noUi-connects {
   background: var(--dxt-color-graylighter, #d9d8d8);
@@ -1464,15 +1469,13 @@
 }
 
 [dir="rtl"]
-  .region-sidebar-first
-  .bef-exposed-form
+  .islandora-search-filters
   .facets-exposed-range-slider__slider.noUi-vertical
   .noUi-connects {
   transform: translateX(50%);
 }
 
-.region-sidebar-first
-  .bef-exposed-form
+.islandora-search-filters
   .facets-exposed-range-slider__slider.noUi-vertical
   .noUi-handle {
   background: transparent;
@@ -1486,17 +1489,16 @@
   width: 2.75rem;
 }
 
-.region-sidebar-first
-  .bef-exposed-form
+.islandora-search-filters
   .facets-exposed-range-slider__slider--no-range {
   display: none;
 }
 
-.region-sidebar-first .bef-nested ul {
+.islandora-search-filters .bef-nested ul {
   padding-inline-start: 1.25rem;
 }
 
-.region-sidebar-first .bef-exposed-form .form-actions {
+.islandora-search-filters .form-actions {
   align-items: stretch;
   display: flex;
   flex-wrap: wrap;
@@ -1504,7 +1506,7 @@
   margin: 0;
 }
 
-.region-sidebar-first .bef-exposed-form .form-actions .form-submit {
+.islandora-search-filters .form-actions .form-submit {
   flex: 1 1 8rem;
   margin: 0;
 }
@@ -1758,7 +1760,8 @@
 }
 
 /* Fielded search is a compact query builder, not another filter sidebar. */
-.region-content > .advanced-search-form {
+.region-content > .advanced-search-form,
+.view-solr-search-content .view-header > .advanced-search-form {
   background: var(--dxt-color-silver, #f4f4f4);
   background: color-mix(
     in srgb,
@@ -1772,12 +1775,20 @@
   padding: clamp(1rem, 3vw, 1.5rem);
 }
 
-.region-content > .advanced-search-form > .block-title {
+.region-content > .advanced-search-form > .block-title,
+.view-solr-search-content
+  .view-header
+  > .advanced-search-form
+  > .block-title {
   font-size: clamp(1.35rem, 2vw, 1.65rem);
   margin: 0 0 1rem;
 }
 
-.region-content > .advanced-search-form > .block-hr {
+.region-content > .advanced-search-form > .block-hr,
+.view-solr-search-content
+  .view-header
+  > .advanced-search-form
+  > .block-hr {
   display: none;
 }
 
@@ -2459,11 +2470,11 @@ iframe.pdf {
     width: 100%;
   }
 
-  .region-sidebar-first .bef-exposed-form .form-actions {
+  .islandora-search-filters .form-actions {
     flex-direction: column;
   }
 
-  .region-sidebar-first .bef-exposed-form .form-actions .form-submit {
+  .islandora-search-filters .form-actions .form-submit {
     flex-basis: auto;
     width: 100%;
   }
@@ -2578,20 +2589,18 @@ iframe.pdf {
   .view-solr-search-content .views-filters-summary,
   .region-sidebar-first > .block,
   .region-sidebar-second > .block,
-  .region-sidebar-first
-    .bef-exposed-form
+  .islandora-search-filters
     :where(fieldset.form-wrapper, details.form-wrapper.card) {
     border: 0.0625rem solid CanvasText;
   }
 
-  .region-sidebar-first
-    .bef-exposed-form
+  .islandora-search-filters
     details.form-wrapper
     > summary.card-header::after {
     border-color: ButtonText;
   }
 
-  .region-sidebar-first
+  .islandora-search-filters
     .bef-checkboxes
     input.form-check-input[type="checkbox"] {
     appearance: auto;
@@ -2599,23 +2608,20 @@ iframe.pdf {
     forced-color-adjust: auto;
   }
 
-  .region-sidebar-first
-    .bef-exposed-form
+  .islandora-search-filters
     .facets-exposed-range-slider__slider
     .noUi-connects {
     border-color: CanvasText;
   }
 
-  .region-sidebar-first
-    .bef-exposed-form
+  .islandora-search-filters
     .facets-exposed-range-slider__slider
     .noUi-connect {
     background: Highlight;
     forced-color-adjust: none;
   }
 
-  .region-sidebar-first
-    .bef-exposed-form
+  .islandora-search-filters
     .facets-exposed-range-slider__slider
     .noUi-handle::before {
     background: Canvas;
@@ -2624,8 +2630,7 @@ iframe.pdf {
   }
 
   .html
-    .region-sidebar-first
-    .bef-exposed-form
+    .islandora-search-filters
     .facets-exposed-range-slider
     .noUi-handle:focus-visible {
     outline-color: Highlight;
