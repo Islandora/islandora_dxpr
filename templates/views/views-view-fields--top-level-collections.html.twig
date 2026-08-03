@@ -1,11 +1,13 @@
 {#
 /**
  * @file
- * Concise collection-card fields for the public collections landing page.
+ * Views override for concise public collection-card fields.
  */
 #}
 {% if fields.did_image.content %}
-  <div class="views-field-did-image">{{ fields.did_image.content }}</div>
+  <div class="views-field-did-image pt-3">
+    {{ fields.did_image.content }}
+  </div>
 {% endif %}
 <div class="islandora-card-body">
   <h3>{{ fields.title.content }}</h3>

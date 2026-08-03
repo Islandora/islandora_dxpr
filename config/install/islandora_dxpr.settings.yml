@@ -3,6 +3,7 @@ favicon:
   path: themes/contrib/islandora_dxpr/favicon.png
   url: ''
   use_default: false
+search_results_per_page_control: dropdown
 header_mobile_breakpoint: '1200'
 full_width_containers:
   cnt_secondary_header: cnt_secondary_header

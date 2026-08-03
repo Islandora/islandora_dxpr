@@ -45,6 +45,19 @@ overrides them, allowing site administrators to customize the theme without
 editing its source files. Do not edit the generated public file directly; use
 the theme settings form or an institutional subtheme instead.
 
+The Islandora discovery section at Appearance > Settings > Islandora DXPR Theme
+controls how search result page sizes are presented. The compact dropdown is
+the default; administrators can switch to visible page-size links when that
+interaction better fits their repository.
+
+For Facets 3 exposed-filter Views, use the contributed
+[Views Exposed Filters Summary](https://www.drupal.org/project/views_filters_summary)
+module and its accessibility companion for selected-value state, individual
+removal, reset, and AJAX behavior. Islandora DXPR styles that module's output as
+removable chips but does not reconstruct filter state in theme JavaScript. This
+keeps search behavior in maintained Drupal modules and leaves the theme
+responsible for presentation.
+
 
 ## License
 

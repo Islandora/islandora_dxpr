@@ -12,56 +12,10 @@
     'form[id^="views-exposed-form-solr-search-content-"]';
   const mobileFiltersSelector =
     '.main-container > .row > aside[data-islandora-sidebar="primary"]';
+  const resultsPerPageSelector = '[data-islandora-results-per-page]';
   const headerSearchCleanups = new WeakMap();
   const mobileFilterCleanups = new WeakMap();
-  let pendingFacetFocus = null;
-
-  const restoreFacetFocus = () => {
-    if (!pendingFacetFocus) {
-      return;
-    }
-
-    const pending = pendingFacetFocus;
-    const form = document.getElementById(pending.formId);
-    if (!form) {
-      pendingFacetFocus = null;
-      return;
-    }
-
-    let target;
-    if (pending.type === 'chip') {
-      target = Array.from(form.querySelectorAll(
-        '.islandora-selected-filters__chip',
-      )).find((chip) =>
-        chip.dataset.filterName === pending.name &&
-        chip.dataset.filterValue === pending.value,
-      );
-    }
-    else {
-      target = form.querySelector(
-        '.form-actions input[type="submit"]:not([name="reset"]), ' +
-        '.form-actions button[type="submit"]:not([name="reset"])',
-      );
-    }
-
-    pendingFacetFocus = null;
-    if (target) {
-      target.focus();
-    }
-  };
-
-  const scheduleFacetFocusRestore = () => {
-    if (!window.jQuery) {
-      window.setTimeout(restoreFacetFocus, 0);
-      return;
-    }
-
-    window.jQuery(document)
-      .off('ajaxStop.islandoraDxprFacetFocus')
-      .one('ajaxStop.islandoraDxprFacetFocus', () => {
-        window.requestAnimationFrame(restoreFacetFocus);
-      });
-  };
+  let pendingResultsPerPageFocus = false;
 
   Drupal.behaviors.islandoraDxprTooltips = {
     attach(context) {
@@ -205,120 +159,55 @@
     },
   };
 
-  Drupal.behaviors.islandoraDxprSelectedFilters = {
+  Drupal.behaviors.islandoraDxprResultsPerPage = {
     attach(context) {
-      once('islandora-dxpr-selected-filters', facetFormSelector, context)
-        .forEach((form) => {
-          const summary = document.createElement('section');
-          const heading = document.createElement('h3');
-          const chips = document.createElement('div');
-          const clear = document.createElement('button');
-          const headingId = `${form.id}-selected-filters`;
-
-          summary.className = 'islandora-selected-filters';
-          summary.setAttribute('aria-labelledby', headingId);
-          summary.setAttribute('aria-live', 'polite');
-          heading.className = 'islandora-selected-filters__heading';
-          heading.id = headingId;
-          heading.textContent = Drupal.t('Selected filters');
-          chips.className = 'islandora-selected-filters__chips';
-          clear.className = 'islandora-selected-filters__clear';
-          clear.type = 'button';
-          clear.textContent = Drupal.t('Clear all');
-          form.classList.add('islandora-selected-filters--enhanced');
-
-          summary.append(heading, chips, clear);
-          form.insertBefore(summary, form.firstElementChild);
-
-          const checkboxes = () => Array.from(
-            form.querySelectorAll('input[type="checkbox"]'),
+      once(
+        'islandora-dxpr-results-per-page',
+        resultsPerPageSelector,
+        context,
+      ).forEach((select) => {
+        let pageSizeUrls = {};
+        try {
+          pageSizeUrls = JSON.parse(
+            select.dataset.islandoraResultsPerPageUrls || '{}',
           );
-          const labelFor = (input) => Array.from(
-            form.querySelectorAll('label[for]'),
-          ).find((label) => label.htmlFor === input.id);
-          const filterLabel = (input) => {
-            const label = labelFor(input);
-            const text = label ? label.textContent.trim() : input.value;
-            return text.replace(/\s+\([\d,]+\)$/, '');
-          };
-          const submitButton = () => form.querySelector(
-            '.form-actions input[type="submit"]:not([name="reset"]), ' +
-            '.form-actions button[type="submit"]:not([name="reset"])',
-          );
-          const submit = () => {
-            const button = submitButton();
-            if (button) {
-              button.click();
-            }
-          };
-          const render = () => {
-            const selected = checkboxes().filter((input) => input.checked);
-            chips.replaceChildren();
-            summary.hidden = selected.length === 0;
+        }
+        catch (_error) {
+          return;
+        }
+        const control = select.closest('.pager__results--dropdown');
+        if (!control) {
+          return;
+        }
 
-            selected.forEach((input) => {
-              const label = filterLabel(input);
-              const chip = document.createElement('button');
-              const icon = document.createElement('span');
+        select.disabled = false;
+        control.classList.add('is-enhanced');
 
-              chip.className = 'islandora-selected-filters__chip';
-              chip.dataset.filterName = input.name;
-              chip.dataset.filterValue = input.value;
-              chip.type = 'button';
-              chip.setAttribute(
-                'aria-label',
-                Drupal.t('Remove filter @label', { '@label': label }),
-              );
-              chip.append(document.createTextNode(label));
-              icon.setAttribute('aria-hidden', 'true');
-              icon.textContent = '×';
-              chip.append(icon);
-              chip.addEventListener('click', () => {
-                const chipIndex = Array.from(chips.children).indexOf(chip);
-                input.checked = false;
-                input.dispatchEvent(new Event('change', { bubbles: true }));
-                const remainingChips = chips.querySelectorAll(
-                  '.islandora-selected-filters__chip',
-                );
-                const focusTarget = remainingChips[
-                  Math.min(chipIndex, remainingChips.length - 1)
-                ] || submitButton();
-                pendingFacetFocus = focusTarget && focusTarget.matches(
-                  '.islandora-selected-filters__chip',
-                )
-                  ? {
-                    type: 'chip',
-                    formId: form.id,
-                    name: focusTarget.dataset.filterName,
-                    value: focusTarget.dataset.filterValue,
-                  }
-                  : { type: 'apply', formId: form.id };
-                if (focusTarget) {
-                  focusTarget.focus();
-                }
-                scheduleFacetFocusRestore();
-                submit();
-              });
-              chips.append(chip);
-            });
-          };
+        if (pendingResultsPerPageFocus) {
+          pendingResultsPerPageFocus = false;
+          window.requestAnimationFrame(() => select.focus());
+        }
 
-          clear.addEventListener('click', () => {
-            checkboxes().forEach((input) => {
-              input.checked = false;
-            });
-            render();
-            const button = submitButton();
-            pendingFacetFocus = { type: 'apply', formId: form.id };
-            if (button) {
-              button.focus();
-            }
-            scheduleFacetFocusRestore();
-            submit();
-          });
-          form.addEventListener('change', render);
-          render();
+        select.addEventListener('change', () => {
+          if (select.value === '') {
+            return;
+          }
+
+          const destination = pageSizeUrls[select.value];
+          if (!destination) {
+            return;
+          }
+          const href = new URL(destination, window.location.origin);
+
+          if (window.historyInitiated === true) {
+            pendingResultsPerPageFocus = true;
+            window.history.pushState(null, document.title, href.toString());
+          }
+          else {
+            window.location.assign(href.toString());
+          }
         });
+      });
     },
   };
 
@@ -350,22 +239,9 @@
           wrapper.append(toggle);
           aside.parentNode.insertBefore(wrapper, aside);
 
-          const selectedCount = () => aside.querySelectorAll(
-            `${facetFormSelector} input[type="checkbox"]:checked`,
-          ).length;
           const updateLabel = () => {
-            if (expanded) {
-              toggle.textContent = Drupal.t('Hide filters');
-              return;
-            }
-
-            const count = selectedCount();
-            toggle.textContent = count
-              ? Drupal.formatPlural(
-                count,
-                'Show filters (1 selected)',
-                'Show filters (@count selected)',
-              )
+            toggle.textContent = expanded
+              ? Drupal.t('Hide filters')
               : Drupal.t('Show filters');
           };
           const render = () => {

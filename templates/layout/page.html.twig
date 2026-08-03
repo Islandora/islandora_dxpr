@@ -1,7 +1,7 @@
 {#
 /**
  * @file
- * Accessibility-focused overrides for DXPR Theme's page template.
+ * Layout override for DXPR Theme's accessibility-focused page template.
  *
  * The main block follows DXPR's layout logic while bringing content_top into
  * the main landmark. Keep it aligned with upstream when DXPR changes layout.
@@ -10,7 +10,7 @@
 {% extends '@dxpr_theme/page.html.twig' %}
 
 {%- macro hasContent(region) -%}
-  {%- set keep_tags = '<drupal-render-placeholder><form><embed><hr><iframe><img><input><link><object><script><source><style><video>' -%}
+  {%- set keep_tags = '<drupal-render-placeholder><form><embed><iframe><img><input><link><object><script><source><style><video>' -%}
   {%- set content = region|render|replace({"\n": "", "\r": "", "\t": ""})|striptags(keep_tags)|trim -%}
   {{- content ? 'TRUE' -}}
 {%- endmacro -%}
@@ -34,17 +34,20 @@
 {% block page_title %}{% endblock %}
 
 {% block islandora_page_title %}
-  {% if title_bg_image_path %}
-    <style>
-      #page-title-full-width-container::after { background-image: url({{ file_url(title_bg_image_path) }}); }
-    </style>
-  {% endif %}
-  <div{{ page_title_attributes }} class="page-title-full-width-container" id="page-title-full-width-container">
-    {% set container = theme.settings.full_width_containers.cnt_page_title ? 'dxpr-theme-fluid' : 'container' %}
-    <div id="page-title" class="{{ container }} page-title-container">
-      {{ page.page_title }}
+  {% set page_title_content = page.page_title|render %}
+  {% if _self.hasContent(page_title_content) %}
+    {% if title_bg_image_path %}
+      <style>
+        #page-title-full-width-container::after { background-image: url({{ file_url(title_bg_image_path) }}); }
+      </style>
+    {% endif %}
+    <div{{ page_title_attributes }} class="page-title-full-width-container" id="page-title-full-width-container">
+      {% set container = theme.settings.full_width_containers.cnt_page_title ? 'dxpr-theme-fluid' : 'container' %}
+      <div id="page-title" class="{{ container }} page-title-container">
+        {{ page_title_content }}
+      </div>
     </div>
-  </div>
+  {% endif %}
 {% endblock %}
 
 {% block action_links %}
@@ -96,13 +99,14 @@
   <div id="main-content" role="main" class="islandora-main-landmark islandora-main-content-target js-quickedit-main-content clearfix" tabindex="-1">
     {{ block('islandora_page_title') }}
 
-    {% if page.content_top %}
+    {% set content_top_content = block('islandora_content_top') %}
+    {% if _self.hasContent(content_top_content) %}
       {% set content_top_container = theme.settings.full_width_containers.cnt_content_top ? 'dxpr-theme-fluid' : 'container' %}
       <div class="{{ content_top_container }} content-top-container islandora-content-top">
         {% if not theme.settings.full_width_containers.cnt_content_top %}
           <div class="row container-row"><div class="col-sm-12 container-col">
         {% endif %}
-        {{ block('islandora_content_top') }}
+        {{ content_top_content|raw }}
         {% if not theme.settings.full_width_containers.cnt_content_top %}
           </div></div>
         {% endif %}

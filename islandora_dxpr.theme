@@ -5,11 +5,72 @@
  * DXPR Theme sub-theme.
  */
 
+use Drupal\Component\Serialization\Json;
 use Drupal\Component\Utility\Html;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Render\Element;
 use Drupal\Core\StringTranslation\TranslatableMarkup;
 use Drupal\Core\Url;
+
+/**
+ * Gets an inherited theme setting across supported Drupal core versions.
+ */
+function islandora_dxpr_get_theme_setting(
+  string $setting_name,
+  ?string $theme = NULL,
+): mixed {
+  $provider_class = '\Drupal\Core\Extension\ThemeSettingsProvider';
+  if (
+    class_exists($provider_class) &&
+    \Drupal::hasService($provider_class)
+  ) {
+    return \Drupal::service($provider_class)->getSetting($setting_name, $theme);
+  }
+
+  // Drupal 10.3 through early Drupal 11 releases use this core API. The
+  // provider branch above avoids its deprecation on newer core releases.
+  return theme_get_setting($setting_name, $theme);
+}
+
+/**
+ * Implements hook_preprocess_page().
+ */
+function islandora_dxpr_preprocess_page(array &$variables): void {
+  if (
+    empty($variables['page']) ||
+    !\Drupal::moduleHandler()->moduleExists('block')
+  ) {
+    return;
+  }
+
+  $block_storage = \Drupal::entityTypeManager()->getStorage('block');
+  foreach ($variables['page'] as $region_key => &$region) {
+    if (str_starts_with((string) $region_key, '#') || !is_array($region)) {
+      continue;
+    }
+
+    foreach (Element::children($region) as $block_key) {
+      $block = &$region[$block_key];
+      if (($block['#create_placeholder'] ?? FALSE) !== TRUE) {
+        unset($block);
+        continue;
+      }
+
+      $block_id = $block['#lazy_builder'][1][0] ?? NULL;
+      $block_entity = is_string($block_id) ? $block_storage->load($block_id) : NULL;
+      if (
+        $block_entity &&
+        $block_entity->getPlugin()->getBaseId() === 'system_breadcrumb_block'
+      ) {
+        // Breadcrumbs are cheap to build. Resolve this one block before its
+        // parent region decides whether it has meaningful visible content.
+        $block['#create_placeholder'] = FALSE;
+      }
+      unset($block);
+    }
+  }
+  unset($region);
+}
 
 /**
  * Implements hook_preprocess_block().
@@ -70,32 +131,249 @@ function islandora_dxpr_preprocess_block(array &$variables): void {
   // Advanced Search currently discovers pager blocks by the class emitted by
   // the Starter Site's former Olivero templates. Keep that public integration
   // point while using DXPR's block template so AJAX paging continues to work.
-  if (str_starts_with($plugin_id, 'advanced_search_result_pager:')) {
+  if (
+    str_starts_with($plugin_id, 'advanced_search_result_pager:') ||
+    str_starts_with($plugin_id, 'islandora_advanced_search_result_pager:')
+  ) {
     $variables['attributes']['class'][] = 'block-plugin-id--islandora-advanced-search-result-pager';
+    islandora_dxpr_prepare_search_results_toolbar($variables['content']);
     if (isset($variables['content']['container']['sort_by'])) {
       $sort = &$variables['content']['container']['sort_by'];
       unset(
         $sort['#options']['search_api_relevance_asc'],
         $sort['#options_attributes']['search_api_relevance_asc'],
       );
-      if (isset($sort['#options']['search_api_relevance_desc'])) {
-        $sort['#options']['search_api_relevance_desc'] =
-          new TranslatableMarkup('Relevance');
-      }
       $sort_labels = [
-        'title_asc' => new TranslatableMarkup('Title (A–Z)'),
-        'title_desc' => new TranslatableMarkup('Title (Z–A)'),
-        'edtf_year_desc' => new TranslatableMarkup('Date (newest first)'),
-        'edtf_year_asc' => new TranslatableMarkup('Date (oldest first)'),
+        'search_api_relevance_desc' =>
+        new TranslatableMarkup('Sort by Relevance'),
+        'title_asc' => new TranslatableMarkup('Sort by Title (A–Z)'),
+        'title_desc' => new TranslatableMarkup('Sort by Title (Z–A)'),
+        'edtf_year_desc' =>
+        new TranslatableMarkup('Sort by Date (newest first)'),
+        'edtf_year_asc' =>
+        new TranslatableMarkup('Sort by Date (oldest first)'),
       ];
-      foreach ($sort_labels as $key => $label) {
-        if (isset($sort['#options'][$key])) {
-          $sort['#options'][$key] = $label;
+      foreach ($sort['#options'] as $key => $existing_label) {
+        if (isset($sort_labels[$key])) {
+          $sort['#options'][$key] = $sort_labels[$key];
+        }
+        elseif (!str_starts_with((string) $existing_label, 'Sort by ')) {
+          $sort['#options'][$key] = new TranslatableMarkup(
+            'Sort by @label',
+            ['@label' => (string) $existing_label],
+          );
         }
       }
       unset($sort);
     }
   }
+}
+
+/**
+ * Orders and prepares the search result controls for theme presentation.
+ */
+function islandora_dxpr_prepare_search_results_toolbar(array &$content): void {
+  if (!isset($content['container']) || !is_array($content['container'])) {
+    return;
+  }
+
+  $container = &$content['container'];
+  $container['#prefix'] =
+    '<div class="pager__group islandora-search-results-toolbar">';
+
+  // Advanced Search renders the summary before its control group. Move the
+  // render array instead of copying its text so translations and cacheability
+  // metadata remain intact and the visual order matches the DOM order.
+  if (isset($content['result_summary'])) {
+    $container['result_summary'] = $content['result_summary'];
+    if (!empty($container['result_summary'])) {
+      $container['result_summary']['#prefix'] =
+        '<div class="pager__summary" role="status" aria-live="polite" aria-atomic="true">';
+      $container['result_summary']['#suffix'] = '</div>';
+    }
+    unset($content['result_summary']);
+  }
+
+  $active_theme = \Drupal::theme()->getActiveTheme()->getName();
+  $control = islandora_dxpr_get_theme_setting(
+    'search_results_per_page_control',
+    $active_theme,
+  );
+  $control = $control === 'links' ? 'links' : 'dropdown';
+  $content['#cache']['tags'][] = 'config:' . $active_theme . '.settings';
+
+  if (isset($container['results_per_page_links'])) {
+    if ($control === 'dropdown') {
+      $container['results_per_page_links'] =
+        islandora_dxpr_build_results_per_page_select(
+          $container['results_per_page_links'],
+        );
+    }
+    else {
+      $container['results_per_page_links']['#wrapper_attributes']['class'][] =
+        'pager__results--links';
+      $container['results_per_page_links']['#wrapper_attributes']['role'] =
+        'navigation';
+      $container['results_per_page_links']['#wrapper_attributes']['aria-label'] =
+        new TranslatableMarkup('Results per page');
+    }
+  }
+
+  // The module uses Bootstrap's page-level container class on individual
+  // controls. Remove it here so each control can occupy one toolbar track
+  // without inheriting container widths and gutters.
+  foreach (['sort_by', 'results_per_page_links', 'display_links'] as $key) {
+    if (!isset($container[$key]['#wrapper_attributes']['class'])) {
+      continue;
+    }
+    $container[$key]['#wrapper_attributes']['class'] = array_values(
+      array_diff(
+        $container[$key]['#wrapper_attributes']['class'],
+        ['container'],
+      ),
+    );
+  }
+
+  $weights = [
+    'result_summary' => -40,
+    'sort_by' => -30,
+    'results_per_page_links' => -20,
+    'display_links' => -10,
+    'pager' => 0,
+  ];
+  foreach ($weights as $key => $weight) {
+    if (isset($container[$key]) && is_array($container[$key])) {
+      $container[$key]['#weight'] = $weight;
+    }
+  }
+  unset($container);
+}
+
+/**
+ * Converts Advanced Search's page-size links into an accessible select list.
+ */
+function islandora_dxpr_build_results_per_page_select(array $links): array {
+  $label = new TranslatableMarkup('Results per page');
+  $page_size_options = [];
+  $page_size_urls = [];
+  $current_value = NULL;
+
+  foreach ($links['#items'] ?? [] as $item) {
+    if (!is_array($item)) {
+      continue;
+    }
+
+    $attributes = $item['#attributes'] ?? [];
+    $value = trim((string) (
+      $attributes['data-items-per-page'] ??
+      $attributes['itemsperpage'] ??
+      $item['#title'] ??
+      ''
+    ));
+    if ($value === '') {
+      continue;
+    }
+
+    $page_size_options[$value] = new TranslatableMarkup(
+      'Results per page (@count)',
+      ['@count' => $value],
+    );
+    $aria_current = strtolower((string) ($attributes['aria-current'] ?? ''));
+    $classes = (array) ($attributes['class'] ?? []);
+    $wrapper_classes = (array) (
+      $item['#wrapper_attributes']['class'] ?? []
+    );
+    if (
+      $aria_current === 'true' ||
+      $aria_current === 'page' ||
+      in_array('pager__link--is-active', $classes, TRUE) ||
+      in_array('is-active', $wrapper_classes, TRUE)
+    ) {
+      $current_value = $value;
+    }
+    $url = $item['#url'] ?? NULL;
+    if ($url instanceof Url) {
+      $page_size_urls[$value] = $url->toString();
+    }
+    elseif (is_string($url) && $url !== '') {
+      $page_size_urls[$value] = $url;
+    }
+  }
+
+  if ($page_size_options === [] || $page_size_urls === []) {
+    return $links;
+  }
+
+  // The empty-value option represents the current page size. Keep only the
+  // alternative sizes below it so the navigation select has no duplicate
+  // choice, while retaining every destination in the JavaScript URL map.
+  $current_value ??= (string) array_key_first($page_size_urls);
+  $options = [
+    '' => new TranslatableMarkup(
+      'Results per page (@count)',
+      ['@count' => $current_value],
+    ),
+  ];
+  foreach ($page_size_options as $value => $option_label) {
+    if ((string) $value !== $current_value) {
+      $options[$value] = $option_label;
+    }
+  }
+
+  $select = [
+    '#type' => 'select',
+    '#title' => $label,
+    '#title_display' => 'invisible',
+    '#description' => new TranslatableMarkup(
+      'Selecting a page size updates the search results.',
+    ),
+    '#description_display' => 'invisible',
+    '#options' => $options,
+    '#value' => '',
+    '#name' => 'items_per_page',
+    '#attributes' => [
+      'autocomplete' => 'off',
+      'aria-label' => $label,
+      'class' => ['pager__items-per-page-select'],
+      'disabled' => TRUE,
+      'data-islandora-results-per-page' => 'true',
+      'data-islandora-results-per-page-urls' => Json::encode($page_size_urls),
+    ],
+    '#wrapper_attributes' => [
+      'class' => ['pager__results-dropdown-control'],
+    ],
+  ];
+
+  // Keep the module's real links as progressive fallback. CSS presents these
+  // links until the theme behavior has parsed the URL map and enabled the
+  // select, so a JavaScript failure never leaves an inert control.
+  $fallback = $links;
+  $fallback['#wrapper_attributes']['class'] = array_values(array_unique([
+    ...array_diff(
+      $fallback['#wrapper_attributes']['class'] ?? [],
+      ['container'],
+    ),
+    'pager__results--links',
+    'pager__results--fallback',
+  ]));
+  $fallback['#wrapper_attributes']['role'] = 'navigation';
+  $fallback['#wrapper_attributes']['aria-label'] = $label;
+
+  $control = [
+    '#type' => 'container',
+    '#attributes' => [
+      'class' => ['pager__results', 'pager__results--dropdown'],
+    ],
+    'select' => $select,
+    'fallback' => $fallback,
+  ];
+  foreach (['#attached', '#cache'] as $metadata_key) {
+    if (isset($links[$metadata_key])) {
+      $control[$metadata_key] = $links[$metadata_key];
+    }
+  }
+
+  return $control;
 }
 
 /**
