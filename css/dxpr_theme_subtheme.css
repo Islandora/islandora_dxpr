@@ -7,8 +7,9 @@
  */
 
 :root {
-  --islandora-surface: #fff;
+  --islandora-surface: var(--dxt-color-body, #fff);
   --islandora-border: var(--dxt-color-graylighter, #d9d8d8);
+  --islandora-control-border: #6c757d;
   --islandora-muted: var(--dxt-color-graylight, #59625a);
   --islandora-radius-sm: 0.375rem;
   --islandora-radius: 0.75rem;
@@ -62,6 +63,9 @@
 .islandora-main-content-target {
   border-radius: var(--islandora-radius-sm);
   min-width: 0;
+  scroll-margin-top: calc(
+    var(--dxt-setting-header-top-height-scroll, 3.125rem) + 1rem
+  );
 }
 
 .islandora-main-content-target:focus {
@@ -77,7 +81,10 @@
   text-underline-offset: 0.14em;
 }
 
-.html :where(.main-container, .page-title-container) p a:not(.btn) {
+.html
+  :where(.main-container, .page-title-container)
+  :where(p, li, dd, .field__item)
+  a:not(.btn, .nav-link) {
   text-decoration-line: underline;
 }
 
@@ -93,6 +100,7 @@
 }
 
 .html :where(input, select, textarea) {
+  border-color: var(--islandora-control-border);
   max-width: 100%;
 }
 
@@ -101,9 +109,21 @@
 }
 
 /* Header, page frame, and footer. */
+.html,
+.html body {
+  background: var(--dxt-color-body, #fff);
+  color: var(--dxt-color-text, #343a40);
+}
+
 .dxpr-theme-header {
+  background-color: var(--dxt-color-header, #fafafa);
   border-bottom: 0.0625rem solid var(--islandora-border);
   box-shadow: var(--islandora-shadow-sm);
+  color: var(--dxt-color-headertext, #1a1a1a);
+}
+
+.dxpr-theme-header.affix {
+  background-color: var(--dxt-color-header, #fafafa);
 }
 
 .dxpr-theme-header .wrap-branding {
@@ -133,40 +153,194 @@
   opacity: 1;
 }
 
-.dxpr-theme-header .block-search-block form {
+.html .dxpr-theme-header .islandora-header-search {
+  --islandora-search-control-size: 2.75rem;
   align-items: stretch;
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
   margin: 0.75rem 0;
 }
 
-.dxpr-theme-header .block-search-block input[type="text"],
-.dxpr-theme-header .block-search-block input[type="search"] {
+.html
+  .dxpr-theme-header
+  .islandora-header-search__input[type="text"],
+.html
+  .dxpr-theme-header
+  .islandora-header-search__input[type="search"] {
   background: var(--islandora-surface);
-  border-radius: var(--islandora-radius-sm) 0 0 var(--islandora-radius-sm);
+  border-end-end-radius: 0;
+  border-end-start-radius: var(--islandora-radius-sm);
+  border-inline-end: 0;
+  border-start-end-radius: 0;
+  border-start-start-radius: var(--islandora-radius-sm);
+  box-sizing: border-box;
+  height: var(--islandora-search-control-size);
+  line-height: 1.5;
+  min-inline-size: 0;
   min-width: min(20rem, 30vw);
+  padding-block: 0.5rem;
 }
 
-.dxpr-theme-header .block-search-block .form-actions,
-.dxpr-theme-header .block-search-block .form-submit {
+.html .dxpr-theme-header .islandora-header-search__actions {
+  display: flex;
+  flex: 0 0 var(--islandora-search-control-size);
+  height: var(--islandora-search-control-size);
   margin: 0;
 }
 
-.dxpr-theme-header .block-search-block .form-submit {
-  border-radius: 0 var(--islandora-radius-sm) var(--islandora-radius-sm) 0;
+.html .dxpr-theme-header .islandora-header-search__submit {
+  align-items: center;
+  border-end-end-radius: var(--islandora-radius-sm);
+  border-end-start-radius: 0;
+  border-start-end-radius: var(--islandora-radius-sm);
+  border-start-start-radius: 0;
+  box-sizing: border-box;
+  display: inline-flex;
+  height: var(--islandora-search-control-size);
+  justify-content: center;
+  margin: 0;
+  min-width: var(--islandora-search-control-size);
+  padding: 0;
+  width: var(--islandora-search-control-size);
+}
+
+.islandora-search-icon {
+  display: block;
+  height: 1.25rem;
+  width: 1.25rem;
+}
+
+/* Desktop header order: identity, primary navigation, compact search. */
+.body--dxpr-theme-nav-desktop
+  .dxpr-theme-header--top
+  .navbar-header-wrapper {
+  align-items: center;
+  display: flex;
+  flex-wrap: nowrap;
+}
+
+.body--dxpr-theme-nav-desktop
+  .dxpr-theme-header--top
+  .navbar-header {
+  flex: 0 0 auto;
+  float: none;
+}
+
+.body--dxpr-theme-nav-desktop
+  .dxpr-theme-header--top
+  #dxpr-theme-main-menu {
+  display: block;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.body--dxpr-theme-nav-desktop
+  .dxpr-theme-header--top
+  .region-navigation-collapsible {
+  align-items: center;
+  display: flex;
+  justify-content: flex-end;
+  min-width: 0;
+}
+
+.body--dxpr-theme-nav-desktop
+  .dxpr-theme-header--top
+  .region-navigation-collapsible
+  > .block {
+  float: none;
+}
+
+.body--dxpr-theme-nav-desktop
+  .dxpr-theme-header--top
+  .region-navigation-collapsible
+  > .block-system-menu-blockmain {
+  flex: 1 1 auto;
+  order: 1;
+}
+
+.body--dxpr-theme-nav-desktop
+  .dxpr-theme-header--top
+  .region-navigation-collapsible
+  > .search-form {
+  align-items: center;
+  display: flex;
+  flex: 0 0 auto;
+  order: 2;
+}
+
+.html.body--dxpr-theme-nav-desktop
+  .dxpr-theme-header
+  .islandora-header-search--enhanced {
+  margin: 0 0 0 0.5rem;
+  overflow: visible;
+  transition: width 180ms ease;
+  width: var(--islandora-search-control-size);
+}
+
+.html.body--dxpr-theme-nav-desktop
+  .dxpr-theme-header
+  .islandora-header-search--enhanced.is-expanded {
+  width: min(22rem, 32vw);
+}
+
+.html.body--dxpr-theme-nav-desktop
+  .dxpr-theme-header
+  .islandora-header-search--enhanced
+  .islandora-header-search__input {
+  min-width: 0;
+  transition:
+    opacity 120ms ease,
+    visibility 120ms ease;
+}
+
+.html.body--dxpr-theme-nav-desktop
+  .dxpr-theme-header
+  .islandora-header-search--enhanced:not(.is-expanded)
+  .islandora-header-search__input {
+  border: 0;
+  opacity: 0;
+  padding-inline: 0;
+  pointer-events: none;
+  visibility: hidden;
+}
+
+.html.body--dxpr-theme-nav-desktop
+  .dxpr-theme-header
+  .islandora-header-search--enhanced:not(.is-expanded)
+  .islandora-header-search__submit {
+  border-radius: var(--islandora-radius-sm);
 }
 
 .page-title-full-width-container {
+  background: var(--dxt-color-pagetitle, #f5f5f5);
   border-bottom: 0.0625rem solid var(--islandora-border);
+  color: var(--dxt-color-pagetitletext, #1a1a1a);
 }
 
 .page-title-container {
-  padding-bottom: clamp(1.25rem, 3vw, 2.25rem);
-  padding-top: clamp(1.25rem, 3vw, 2.25rem);
+  padding-bottom: clamp(0.5rem, 1vw, 0.75rem);
+  padding-top: clamp(0.5rem, 1vw, 0.75rem);
 }
 
 .page-title-container .page-title {
   margin-bottom: 0;
   overflow-wrap: anywhere;
+}
+
+/* Retain the search page's H1 for navigation without consuming above-fold
+ * space with the decorative full-width title band. */
+.page-route-view-solr-search-content-page-1
+  .page-title-full-width-container {
+  border: 0;
+  clip: rect(0, 0, 0, 0);
+  clip-path: inset(50%);
+  height: 0.0625rem;
+  margin: -0.0625rem;
+  overflow: hidden;
+  padding: 0;
+  position: absolute !important;
+  white-space: nowrap;
+  width: 0.0625rem;
 }
 
 .main-container {
@@ -184,6 +358,10 @@
   max-width: var(--islandora-reading-width);
 }
 
+.islandora-content-top {
+  margin-bottom: clamp(2rem, 5vw, 4rem);
+}
+
 .breadcrumb {
   align-items: center;
   display: flex;
@@ -193,8 +371,10 @@
 }
 
 .dxpr-theme-footer {
+  background: var(--dxt-color-footer, #fafafa);
   border-top: 0.0625rem solid var(--islandora-border);
   box-shadow: 0 -0.0625rem 0.1875rem rgb(26 26 26 / 6%);
+  color: var(--dxt-color-footertext, #343a40);
   margin-top: 0;
 }
 
@@ -203,13 +383,33 @@
   padding-top: 1.5rem;
 }
 
-.dxpr-theme-footer .menu {
+.dxpr-theme-footer .region-footer {
+  align-items: center;
   display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1.5rem;
+  justify-content: space-between;
+}
+
+.dxpr-theme-footer .footer-container.dxpr-theme-fluid .region-footer {
+  margin-inline: auto;
+  max-width: var(--dxt-setting-layout-max-width, 82.5rem);
+  padding-inline: clamp(1rem, 4vw, 3.75rem);
+}
+
+.dxpr-theme-footer :where(.menu, .navbar-nav) {
+  align-items: center;
+  display: flex;
+  flex-direction: row;
   flex-wrap: wrap;
   gap: 0.5rem 1.5rem;
   list-style: none;
-  margin: 0 0 1rem;
+  margin: 0;
   padding: 0;
+}
+
+.dxpr-theme-footer .block {
+  margin: 0;
 }
 
 .dxpr-theme-footer a {
@@ -219,9 +419,46 @@
 }
 
 /* Collection discovery cards. */
+.view-top-level-collections .view-header {
+  margin-bottom: clamp(1.5rem, 4vw, 2.5rem);
+  max-width: var(--islandora-reading-width);
+}
+
+.view-top-level-collections .view-header h2 {
+  margin-bottom: 0.75rem;
+}
+
+.view-top-level-collections .islandora-collections-search-cta {
+  background: var(--dxt-color-base, #6844ca);
+  border: 0.125rem solid var(--dxt-color-base, #6844ca);
+  border-radius: var(--islandora-radius-sm);
+  color: var(--dxt-color-basetext, #fff);
+  display: inline-flex;
+  font-weight: 600;
+  margin-top: 0.5rem;
+  min-height: 2.75rem;
+  padding: 0.55rem 1rem;
+  text-decoration: none;
+}
+
+.view-top-level-collections .islandora-collections-search-cta:hover,
+.view-top-level-collections .islandora-collections-search-cta:focus-visible {
+  background: var(--dxt-color-accent1, #2c8343);
+  border-color: var(--dxt-color-accent1, #2c8343);
+  color: var(--dxt-color-accent1text, #fff);
+}
+
 .islandora-collection-grid,
 .islandora-collection-members {
-  margin-top: 1rem;
+  --bs-gutter-x: 1.5rem;
+  --bs-gutter-y: 0;
+  margin-bottom: 1rem;
+  margin-top: 0;
+  row-gap: 1.5rem;
+}
+
+.islandora-card-column {
+  display: flex;
 }
 
 .islandora-collection-card,
@@ -234,6 +471,8 @@
   flex-direction: column;
   overflow: hidden;
   padding: 0;
+  position: relative;
+  width: 100%;
   transition:
     border-color 160ms ease,
     box-shadow 160ms ease,
@@ -255,6 +494,18 @@
   margin-right: 1.25rem;
 }
 
+.islandora-card-body {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  margin: 0;
+  padding: 1.25rem;
+}
+
+.islandora-card-body > :last-child {
+  margin-bottom: 0;
+}
+
 .islandora-collection-card > .views-field-did-image,
 .islandora-result-card > .views-field-did-image {
   margin-left: 0;
@@ -272,12 +523,90 @@
 .islandora-collection-card h3,
 .islandora-result-card h3 {
   font-size: clamp(1.25rem, 2vw, 1.6rem);
-  margin: 1.25rem;
+  margin: 0 0 0.85rem;
 }
 
 .islandora-collection-card h3 a,
 .islandora-result-card h3 a {
   display: inline-block;
+}
+
+.islandora-collection-card h3 a::after,
+.islandora-result-card h3 a::after {
+  content: "";
+  inset: 0;
+  position: absolute;
+  z-index: 1;
+}
+
+.islandora-card-meta {
+  color: var(--islandora-muted);
+  display: flex;
+  flex-wrap: wrap;
+  font-size: 0.95rem;
+  gap: 0.25rem 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.islandora-card-description {
+  display: -webkit-box;
+  margin-top: auto;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+}
+
+/* Collection Members always uses Views Bootstrap's grid markup. Turn those
+ * same cards into a true single-column list when Advanced Search selects List. */
+.view-solr-search-content.view-list
+  .islandora-collection-members
+  > .islandora-card-column {
+  flex: 0 0 100%;
+  max-width: 100%;
+  width: 100%;
+}
+
+.view-solr-search-content.view-list .islandora-result-card {
+  align-items: stretch;
+  flex-direction: row-reverse;
+}
+
+.view-solr-search-content.view-list
+  .islandora-result-card
+  > .views-field-did-image {
+  flex: 0 0 clamp(10rem, 25%, 14rem);
+}
+
+.view-solr-search-content.view-list
+  .islandora-result-card
+  > .views-field-did-image
+  img {
+  aspect-ratio: 4 / 3;
+  height: 100%;
+}
+
+.view-solr-search-content.view-list
+  .islandora-result-card
+  .islandora-card-body {
+  min-width: 0;
+}
+
+.view-solr-search-content.view-list
+  .islandora-result-card
+  .islandora-card-description {
+  display: block;
+  margin-top: 0;
+  overflow: visible;
+  -webkit-line-clamp: unset;
+}
+
+.islandora-collection-summary {
+  color: var(--islandora-muted);
+  display: -webkit-box;
+  line-height: 1.55;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
 }
 
 /* Search results and controls. */
@@ -291,7 +620,157 @@
   border: 0.0625rem solid var(--islandora-border);
   border-radius: var(--islandora-radius);
   box-shadow: var(--islandora-shadow-sm);
+  display: block;
   padding: clamp(1rem, 3vw, 1.75rem);
+  position: relative;
+}
+
+.islandora-search-result__layout {
+  display: grid;
+  gap: clamp(1rem, 3vw, 1.75rem);
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.islandora-search-result__layout.has-image {
+  grid-template-columns: minmax(0, 1fr) minmax(8rem, 12rem);
+}
+
+.islandora-search-result__body {
+  min-width: 0;
+}
+
+.islandora-search-result__eyebrow {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 0.75rem;
+  margin-bottom: 0.625rem;
+}
+
+.islandora-search-result__type {
+  background: var(--dxt-color-silver, #f4f4f4);
+  background: color-mix(
+    in srgb,
+    var(--dxt-color-base, #6844ca) 9%,
+    var(--islandora-surface)
+  );
+  border: 0.0625rem solid var(--islandora-border);
+  border-radius: 999rem;
+  color: var(--dxt-color-headings, #1a1a1a);
+  display: inline-flex;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  letter-spacing: 0.035em;
+  line-height: 1.2;
+  padding: 0.35rem 0.625rem;
+  text-transform: uppercase;
+}
+
+.islandora-search-result__date {
+  color: var(--islandora-muted);
+  font-size: 0.9375rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.view-solr-search-content
+  .islandora-search-result
+  .islandora-search-result__title {
+  font-size: clamp(1.35rem, 2vw, 1.75rem);
+  line-height: 1.2;
+  margin: 0 0 0.75rem;
+}
+
+.islandora-search-result__meta {
+  color: var(--islandora-muted);
+  line-height: 1.5;
+  margin-top: 0.3rem;
+}
+
+.islandora-search-result__label {
+  color: var(--dxt-color-headings, #1a1a1a);
+  font-weight: 650;
+}
+
+.islandora-search-result__description {
+  line-height: 1.6;
+  margin-top: 0.875rem;
+  max-width: var(--islandora-reading-width);
+}
+
+.islandora-search-result__excerpt {
+  background: var(--dxt-color-silver, #f4f4f4);
+  border-inline-start: 0.2rem solid var(--dxt-color-base, #6844ca);
+  color: var(--islandora-muted);
+  font-size: 0.9375rem;
+  line-height: 1.55;
+  margin-top: 0.875rem;
+  padding: 0.65rem 0.8rem;
+}
+
+.islandora-search-result__excerpt :where(mark, strong) {
+  background: #fff1a8;
+  color: #1a1a1a;
+  font-weight: 700;
+  padding-inline: 0.08em;
+}
+
+.islandora-search-result__media {
+  align-self: start;
+  grid-column: 2;
+  grid-row: 1;
+  margin: 0;
+  min-width: 0;
+}
+
+.islandora-search-result__media img {
+  aspect-ratio: 4 / 3;
+  border-radius: var(--islandora-radius-sm);
+  display: block;
+  height: auto;
+  object-fit: cover;
+  width: 100%;
+}
+
+.view-solr-search-content
+  .islandora-search-result
+  .views-field-did-image {
+  float: right;
+  margin: 0 0 1rem clamp(1rem, 3vw, 1.75rem);
+  max-width: 13rem;
+  width: min(30%, 13rem);
+}
+
+.view-solr-search-content
+  .islandora-search-result
+  .views-field-did-image
+  img {
+  aspect-ratio: 4 / 3;
+  height: auto;
+  object-fit: cover;
+  width: 100%;
+}
+
+.view-solr-search-content
+  .islandora-search-result
+  .views-field-did-image.islandora-search-result__media {
+  float: none;
+  margin: 0;
+  max-width: none;
+  width: 100%;
+}
+
+.view-solr-search-content .islandora-search-result .views-field-title a::after {
+  content: "";
+  inset: 0;
+  position: absolute;
+  z-index: 1;
+}
+
+.islandora-search-result
+  :where(.islandora-search-result__meta, .islandora-search-result__excerpt)
+  a {
+  position: relative;
+  z-index: 2;
 }
 
 .view-solr-search-content .islandora-search-result:hover,
@@ -304,6 +783,65 @@
   margin-bottom: 0.75rem;
 }
 
+.view-solr-search-content .view-empty {
+  background: var(--islandora-surface);
+  border: 0.0625rem solid var(--islandora-border);
+  border-radius: var(--islandora-radius);
+  box-shadow: var(--islandora-shadow-sm);
+  padding: clamp(1.25rem, 4vw, 2rem);
+}
+
+.view-solr-search-content .view-empty h2 {
+  font-size: clamp(1.35rem, 2vw, 1.75rem);
+  margin-top: 0;
+}
+
+.view-solr-search-content .view-empty > :last-child {
+  margin-bottom: 0;
+}
+
+/* Advanced Search toggles view-grid on the View, while Views Bootstrap puts
+ * result rows inside its list-group element. Grid that real row container. */
+.view-solr-search-content.view-grid > .view-content {
+  display: block;
+}
+
+.view-solr-search-content.view-grid .islandora-search-results {
+  display: grid;
+  gap: 1.5rem;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.view-solr-search-content.view-grid
+  .islandora-search-results
+  > .islandora-search-result {
+  float: none;
+  padding: clamp(1rem, 3vw, 1.75rem) !important;
+  width: auto;
+}
+
+.view-solr-search-content.view-grid
+  .islandora-search-result
+  .views-field-did-image {
+  float: none;
+  margin: 0 0 1rem;
+  max-width: none;
+  width: 100%;
+}
+
+.view-solr-search-content.view-grid .islandora-search-result__layout.has-image {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.view-solr-search-content.view-grid .islandora-search-result__media {
+  grid-column: 1;
+  grid-row: 1;
+}
+
+.view-solr-search-content.view-grid .islandora-search-result__body {
+  grid-row: 2;
+}
+
 .view-solr-search-content .views-field {
   margin-bottom: 0.45rem;
 }
@@ -313,12 +851,84 @@
   font-weight: 600;
 }
 
+/* Linked authority terms double as useful no-code browse landing pages. */
+.view-taxonomy-term .view-content {
+  display: grid;
+  gap: 1rem;
+}
+
+.islandora-browse-result {
+  background: var(--islandora-surface);
+  border: 0.0625rem solid var(--islandora-border);
+  border-radius: var(--islandora-radius);
+  box-shadow: var(--islandora-shadow-sm);
+  padding: clamp(1rem, 3vw, 1.5rem);
+}
+
+.islandora-browse-result__title {
+  font-size: clamp(1.25rem, 2vw, 1.6rem);
+  margin: 0 0 0.75rem;
+}
+
+.islandora-browse-result__content {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.islandora-browse-result__content > .field {
+  border: 0;
+  display: grid;
+  gap: 0.25rem 0.75rem;
+  grid-template-columns: minmax(7rem, 9rem) minmax(0, 1fr);
+  margin: 0;
+  padding: 0.2rem 0;
+}
+
+.islandora-browse-result__content > .field--label-hidden,
+.islandora-browse-result__content > .field--name-field-description,
+.islandora-browse-result__content > .field--name-field-abstract {
+  display: block;
+}
+
+.islandora-browse-result__content > .field--name-field-model {
+  display: flex;
+  font-size: 0.875rem;
+  gap: 0.4rem;
+}
+
+.islandora-browse-result__content
+  > .field--name-field-model
+  :where(.field__label, .field__item) {
+  background: var(--dxt-color-silver, #f4f4f4);
+  border-radius: 999rem;
+  padding: 0.2rem 0.55rem;
+}
+
+.islandora-browse-result__content .field__label {
+  color: var(--dxt-color-headings, #1a1a1a);
+  font-weight: 650;
+}
+
+.islandora-browse-result__content
+  > :where(.field--name-field-description, .field--name-field-abstract) {
+  line-height: 1.6;
+  margin-top: 0.35rem;
+  max-width: var(--islandora-reading-width);
+}
+
 .region-sidebar-first > .block,
 .region-sidebar-second > .block {
   background: var(--islandora-surface);
   border: 0.0625rem solid var(--islandora-border);
   border-radius: var(--islandora-radius);
   padding: 1.25rem;
+}
+
+.region-sidebar-first,
+.region-sidebar-second {
+  align-content: start;
+  display: grid;
+  gap: 1rem;
 }
 
 .region-sidebar-first .block-title,
@@ -331,6 +941,830 @@
   list-style: none;
   margin: 0;
   padding: 0;
+}
+
+/* Facets 3 exposes one shared filter definition through each search display. */
+.islandora-search-filters {
+  margin-block: 1.25rem 1.5rem;
+}
+
+.islandora-search-filters > .form--inline {
+  align-items: start;
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr));
+}
+
+.islandora-search-filters
+  > .form--inline
+  > :where(.form-item, .form-wrapper) {
+  margin: 0;
+  min-width: 0;
+}
+
+.islandora-search-filters
+  > .form--inline
+  > :is(details.bef--secondary, .form-actions) {
+  grid-column: 1 / -1;
+}
+
+.islandora-search-filters .facets-exposed-searchbox {
+  border-bottom: 0.0625rem solid var(--islandora-border);
+  margin: 0;
+  padding: 0.75rem;
+}
+
+.islandora-search-filters .facets-exposed-searchbox__label {
+  color: var(--islandora-muted);
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.html .islandora-search-filters .facets-exposed-searchbox__input {
+  background: var(--islandora-surface);
+  border-color: var(--islandora-control-border);
+  border-radius: var(--islandora-radius-sm);
+  min-height: 2.75rem;
+}
+
+.islandora-search-filters .facets-exposed-searchbox__no-results {
+  color: var(--islandora-muted);
+  margin-block-end: 0;
+}
+
+.islandora-search-filters .form--inline > .form-item,
+.islandora-search-filters
+  .form--inline
+  .js-form-wrapper
+  > .form-item {
+  float: none;
+  width: 100%;
+}
+
+.islandora-search-filters .form-item {
+  margin-bottom: 0.875rem;
+}
+
+.islandora-search-filters
+  .form-item:not(.form-type-checkbox)
+  > label {
+  color: var(--dxt-color-headings, #1a1a1a);
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.35;
+  margin-bottom: 0.5rem;
+}
+
+.islandora-search-filters
+  :where(fieldset.form-wrapper, details.form-wrapper.card) {
+  background: var(--islandora-surface);
+  border: 0.0625rem solid var(--islandora-border);
+  border-radius: var(--islandora-radius-sm);
+  box-shadow: 0 0.0625rem 0.125rem rgb(26 26 26 / 5%);
+  display: block;
+  margin: 0 0 0.75rem;
+  overflow: hidden;
+  padding: 0;
+}
+
+.islandora-search-filters fieldset.form-wrapper > legend {
+  background: var(--dxt-color-silver, #f4f4f4);
+  border-bottom: 0.0625rem solid var(--islandora-border);
+  color: var(--dxt-color-headings, #1a1a1a);
+  float: none;
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.35;
+  margin: 0;
+  padding: 0.85rem 1rem;
+  width: 100%;
+}
+
+.islandora-search-filters fieldset > .fieldset-wrapper {
+  padding: 0.5rem;
+}
+
+.islandora-search-filters
+  details.form-wrapper
+  > summary.card-header {
+  align-items: center;
+  background: var(--dxt-color-silver, #f4f4f4);
+  border: 0;
+  border-radius: 0;
+  color: var(--dxt-color-headings, #1a1a1a);
+  cursor: pointer;
+  display: flex;
+  font-weight: 600;
+  gap: 0.75rem;
+  justify-content: space-between;
+  line-height: 1.35;
+  min-height: 3.25rem;
+  padding: 0.75rem 1rem;
+  transition:
+    background-color 160ms ease,
+    color 160ms ease;
+}
+
+.islandora-search-filters
+  details.form-wrapper
+  > summary.card-header::marker {
+  content: "";
+}
+
+.islandora-search-filters
+  details.form-wrapper
+  > summary.card-header::-webkit-details-marker {
+  display: none;
+}
+
+.islandora-search-filters
+  details.form-wrapper
+  > summary.card-header::after {
+  border-bottom: 0.125rem solid currentColor;
+  border-right: 0.125rem solid currentColor;
+  content: "";
+  flex: 0 0 auto;
+  height: 0.55rem;
+  margin-inline-end: 0.15rem;
+  transform: rotate(45deg);
+  transition: transform 160ms ease;
+  width: 0.55rem;
+}
+
+.islandora-search-filters
+  details.form-wrapper[open]
+  > summary.card-header {
+  background: var(--dxt-color-silver, #f4f4f4);
+  background: color-mix(
+    in srgb,
+    var(--dxt-color-base, #6844ca) 10%,
+    var(--islandora-surface)
+  );
+  border-bottom: 0.0625rem solid var(--islandora-border);
+  color: var(--dxt-color-base, #6844ca);
+}
+
+.islandora-search-filters
+  details.form-wrapper[open]
+  > summary.card-header::after {
+  transform: rotate(225deg);
+}
+
+.islandora-search-filters
+  details.form-wrapper
+  > summary.card-header:hover {
+  background: var(--dxt-color-silver, #f4f4f4);
+  background: color-mix(
+    in srgb,
+    var(--dxt-color-base, #6844ca) 8%,
+    var(--islandora-surface)
+  );
+}
+
+.islandora-search-filters
+  details.form-wrapper
+  > summary.card-header:focus-visible {
+  outline-offset: -0.25rem;
+}
+
+.islandora-search-filters
+  details.form-wrapper
+  > .details-wrapper.card-body {
+  display: block;
+  flex: none;
+  padding: 0.5rem;
+}
+
+.islandora-search-filters
+  details.bef--secondary
+  .details-wrapper
+  > fieldset.form-wrapper {
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  margin: 0;
+  overflow: visible;
+}
+
+.islandora-search-filters
+  details.bef--secondary
+  .details-wrapper
+  > fieldset.form-wrapper
+  > legend {
+  background: transparent;
+  padding-inline: 0.5rem;
+}
+
+.islandora-search-filters .bef-checkboxes {
+  display: grid;
+  gap: 0.125rem;
+}
+
+.islandora-search-filters .bef-checkboxes .form-type-checkbox {
+  align-items: flex-start;
+  border-radius: var(--islandora-radius-sm);
+  display: grid;
+  gap: 0.625rem;
+  grid-template-columns: 1.25rem minmax(0, 1fr);
+  margin: 0;
+  min-height: 2.75rem;
+  padding: 0.25rem 0.5rem;
+  transition:
+    background-color 120ms ease,
+    box-shadow 120ms ease;
+}
+
+.islandora-search-filters .bef-checkboxes .form-type-checkbox:hover,
+.islandora-search-filters .bef-checkboxes .form-type-checkbox:focus-within {
+  background: var(--dxt-color-silver, #f4f4f4);
+  background: color-mix(
+    in srgb,
+    var(--dxt-color-base, #6844ca) 7%,
+    var(--islandora-surface)
+  );
+}
+
+.islandora-search-filters .bef-checkboxes .form-type-checkbox:focus-within {
+  box-shadow: inset 0 0 0 0.125rem var(--dxt-color-base, #6844ca);
+}
+
+.islandora-search-filters .bef-checkboxes input[type="checkbox"] {
+  accent-color: var(--dxt-color-base, #6844ca);
+  border-color: var(--islandora-control-border);
+  flex: 0 0 auto;
+  float: none;
+  height: 1.25rem;
+  margin: 0.5rem 0 0;
+  width: 1.25rem;
+}
+
+.islandora-search-filters
+  .bef-checkboxes
+  input.form-check-input[type="checkbox"]:checked {
+  background-color: var(--dxt-color-base, #6844ca);
+  border-color: var(--dxt-color-base, #6844ca);
+}
+
+.islandora-search-filters .bef-checkboxes label {
+  cursor: pointer;
+  flex: 1 1 auto;
+  line-height: 1.45;
+  margin: 0;
+  overflow-wrap: anywhere;
+  padding: 0.375rem 0;
+}
+
+.islandora-search-filters
+  .bef-checkboxes
+  input[type="checkbox"]:checked
+  + label {
+  color: var(--dxt-color-base, #6844ca);
+  font-weight: 600;
+}
+
+.islandora-search-filters
+  .bef-checkboxes
+  .form-type-checkbox:has(input[type="checkbox"]:checked) {
+  background: var(--dxt-color-silver, #f4f4f4);
+  background: color-mix(
+    in srgb,
+    var(--dxt-color-base, #6844ca) 9%,
+    var(--islandora-surface)
+  );
+}
+
+.islandora-search-filters
+  .bef-checkboxes
+  input[type="checkbox"]:disabled
+  + label {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
+/* Facets 3's exposed range slider keeps precise, editable bounds available. */
+.islandora-search-filters
+  .facets-exposed-range-slider
+  > .fieldset-wrapper {
+  display: grid;
+  gap: 0.875rem 1rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  padding: 1rem;
+}
+
+.islandora-search-filters
+  .facets-exposed-range-slider
+  > .fieldset-wrapper
+  > .form-item:has([data-facets-exposed-range-slider-min]) {
+  grid-column: 1;
+  grid-row: 1;
+}
+
+.islandora-search-filters
+  .facets-exposed-range-slider
+  > .fieldset-wrapper
+  > .form-item:has([data-facets-exposed-range-slider-max]) {
+  grid-column: 2;
+  grid-row: 1;
+}
+
+.islandora-search-filters
+  .facets-exposed-range-slider
+  > .fieldset-wrapper
+  > .form-item {
+  float: none;
+  margin: 0;
+  min-width: 0;
+  width: 100%;
+}
+
+.islandora-search-filters
+  .facets-exposed-range-slider
+  > .fieldset-wrapper
+  > .form-item
+  > label {
+  color: var(--islandora-muted);
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1.3;
+  margin: 0 0 0.375rem;
+}
+
+.html
+  .islandora-search-filters
+  .facets-exposed-range-slider
+  :is(
+    [data-facets-exposed-range-slider-min],
+    [data-facets-exposed-range-slider-max]
+  ) {
+  background: var(--islandora-surface);
+  border: 0.0625rem solid var(--islandora-control-border);
+  border-radius: var(--islandora-radius-sm);
+  box-shadow: none;
+  box-sizing: border-box;
+  font-variant-numeric: tabular-nums;
+  min-height: 2.75rem;
+  padding: 0.5rem 0.625rem;
+  text-align: center;
+  width: 100%;
+}
+
+.html
+  .islandora-search-filters
+  .facets-exposed-range-slider
+  :is(
+    [data-facets-exposed-range-slider-min],
+    [data-facets-exposed-range-slider-max]
+  )[readonly] {
+  background: var(--dxt-color-silver, #f4f4f4);
+  color: var(--islandora-muted);
+}
+
+.islandora-search-filters
+  .facets-exposed-range-slider__slider {
+  align-self: center;
+  grid-column: 1 / -1;
+  grid-row: 2;
+  margin: 0.125rem 0;
+  min-height: 2.75rem;
+  min-width: 0;
+}
+
+/* The full track and 44px handles exceed WCAG 2.2's AA target minimum. */
+.islandora-search-filters
+  .facets-exposed-range-slider__slider.noUi-horizontal {
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  height: 2.75rem;
+}
+
+.islandora-search-filters
+  .facets-exposed-range-slider__slider.noUi-horizontal
+  .noUi-connects {
+  background: var(--dxt-color-graylighter, #d9d8d8);
+  border: 0.0625rem solid var(--islandora-control-border);
+  border-radius: 999rem;
+  box-shadow: inset 0 0.0625rem 0.125rem rgb(26 26 26 / 10%);
+  height: 0.5rem;
+  inset-block-start: 50%;
+  transform: translateY(-50%);
+}
+
+.islandora-search-filters
+  .facets-exposed-range-slider__slider
+  .noUi-connect {
+  background: var(--dxt-color-base, #6844ca);
+}
+
+.islandora-search-filters
+  .facets-exposed-range-slider__slider.noUi-horizontal
+  .noUi-handle {
+  background: transparent;
+  border: 0;
+  border-radius: 999rem;
+  box-shadow: none;
+  cursor: grab;
+  height: 2.75rem;
+  inset-block-start: 0;
+  inset-inline-end: -1.375rem;
+  width: 2.75rem;
+}
+
+.islandora-search-filters
+  .facets-exposed-range-slider__slider.noUi-horizontal.noUi-txt-dir-rtl
+  .noUi-handle {
+  inset-inline-end: auto;
+  inset-inline-start: -1.375rem;
+}
+
+.islandora-search-filters
+  .facets-exposed-range-slider__slider
+  .noUi-handle::before {
+  background: var(--islandora-surface);
+  border: 0.125rem solid var(--dxt-color-base, #6844ca);
+  border-radius: 50%;
+  box-shadow: var(--islandora-shadow-sm);
+  content: "";
+  height: 1.375rem;
+  inset-block-start: 50%;
+  inset-inline-start: 50%;
+  position: absolute;
+  transform: translate(-50%, -50%);
+  transition:
+    background-color 120ms ease,
+    box-shadow 120ms ease,
+    transform 120ms ease;
+  width: 1.375rem;
+}
+
+[dir="rtl"]
+  .islandora-search-filters
+  .facets-exposed-range-slider__slider
+  .noUi-handle::before {
+  transform: translate(50%, -50%);
+}
+
+.islandora-search-filters
+  .facets-exposed-range-slider__slider
+  .noUi-handle::after {
+  display: none;
+}
+
+.islandora-search-filters
+  .facets-exposed-range-slider__slider:not([disabled])
+  .noUi-handle:hover::before,
+.islandora-search-filters
+  .facets-exposed-range-slider__slider
+  .noUi-handle.noUi-active::before {
+  background: color-mix(
+    in srgb,
+    var(--dxt-color-base, #6844ca) 12%,
+    var(--islandora-surface)
+  );
+  box-shadow: 0 0 0 0.25rem
+    color-mix(in srgb, var(--dxt-color-base, #6844ca) 16%, transparent);
+  transform: translate(-50%, -50%) scale(1.08);
+}
+
+[dir="rtl"]
+  .islandora-search-filters
+  .facets-exposed-range-slider__slider:not([disabled])
+  .noUi-handle:hover::before,
+[dir="rtl"]
+  .islandora-search-filters
+  .facets-exposed-range-slider__slider
+  .noUi-handle.noUi-active::before {
+  transform: translate(50%, -50%) scale(1.08);
+}
+
+.html
+  .islandora-search-filters
+  .facets-exposed-range-slider
+  .noUi-handle:focus-visible {
+  outline: 0.1875rem solid var(--islandora-focus);
+  outline-offset: -0.1875rem;
+}
+
+.islandora-search-filters
+  .facets-exposed-range-slider__slider[disabled] {
+  opacity: 0.65;
+}
+
+.islandora-search-filters
+  .facets-exposed-range-slider__slider[disabled]
+  .noUi-handle {
+  cursor: not-allowed;
+}
+
+.islandora-search-filters
+  .facets-exposed-range-slider__slider[disabled]
+  .noUi-handle::before {
+  border-color: var(--islandora-muted);
+}
+
+.islandora-search-filters
+  .facets-exposed-range-slider--tooltips-enabled
+  .facets-exposed-range-slider__slider {
+  margin-block-start: 1.75rem;
+}
+
+.islandora-search-filters
+  .facets-exposed-range-slider
+  .noUi-tooltip {
+  background: var(--dxt-color-headings, #1a1a1a);
+  border: 0;
+  border-radius: var(--islandora-radius-sm);
+  box-shadow: var(--islandora-shadow-sm);
+  color: #fff;
+  font-size: 0.8125rem;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.2;
+  padding: 0.35rem 0.5rem;
+}
+
+.islandora-search-filters
+  .facets-exposed-range-slider
+  .noUi-horizontal
+  .noUi-tooltip {
+  bottom: calc(100% - 0.25rem);
+}
+
+.islandora-search-filters
+  .facets-exposed-range-slider__slider.noUi-vertical {
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  height: 10rem;
+  justify-self: center;
+  width: 2.75rem;
+}
+
+.islandora-search-filters
+  .facets-exposed-range-slider__slider.noUi-vertical
+  .noUi-connects {
+  background: var(--dxt-color-graylighter, #d9d8d8);
+  border: 0.0625rem solid var(--islandora-control-border);
+  border-radius: 999rem;
+  height: 100%;
+  inset-inline-start: 50%;
+  transform: translateX(-50%);
+  width: 0.5rem;
+}
+
+[dir="rtl"]
+  .islandora-search-filters
+  .facets-exposed-range-slider__slider.noUi-vertical
+  .noUi-connects {
+  transform: translateX(50%);
+}
+
+.islandora-search-filters
+  .facets-exposed-range-slider__slider.noUi-vertical
+  .noUi-handle {
+  background: transparent;
+  border: 0;
+  border-radius: 999rem;
+  bottom: -1.375rem;
+  box-shadow: none;
+  cursor: grab;
+  height: 2.75rem;
+  inset-inline-end: 0;
+  width: 2.75rem;
+}
+
+.islandora-search-filters
+  .facets-exposed-range-slider__slider--no-range {
+  display: none;
+}
+
+.islandora-search-filters .bef-nested ul {
+  padding-inline-start: 1.25rem;
+}
+
+.islandora-search-filters .form-actions {
+  align-items: stretch;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.625rem;
+  margin: 0;
+}
+
+.islandora-search-filters .form-actions .form-submit {
+  flex: 1 1 8rem;
+  margin: 0;
+}
+
+.islandora-mobile-filter-toggle-wrapper {
+  display: none;
+}
+
+.islandora-mobile-filter-toggle-wrapper[hidden],
+.main-container > .row > aside[hidden] {
+  display: none !important;
+}
+
+.html .islandora-mobile-filter-toggle {
+  align-items: center;
+  background: var(--islandora-surface);
+  border: 0.0625rem solid var(--islandora-border);
+  border-radius: var(--islandora-radius-sm);
+  color: var(--dxt-color-headings, #1a1a1a);
+  display: flex;
+  font-weight: 650;
+  justify-content: space-between;
+  margin: 0;
+  min-height: 3rem;
+  padding: 0.65rem 1rem;
+  width: 100%;
+}
+
+.islandora-mobile-filter-toggle::after {
+  border: solid currentcolor;
+  border-width: 0 0.125rem 0.125rem 0;
+  content: '';
+  height: 0.6rem;
+  margin: -0.2rem 0.2rem 0 1rem;
+  transform: rotate(45deg);
+  transition: transform 120ms ease;
+  width: 0.6rem;
+}
+
+.islandora-mobile-filter-toggle[aria-expanded="true"]::after {
+  margin-top: 0.2rem;
+  transform: rotate(225deg);
+}
+
+/* Query-aware active filters supplied by Views Filters Summary + A11y. */
+.view-solr-search-content .views-filters-summary {
+  align-items: center;
+  background: var(--dxt-color-silver, #f4f4f4);
+  border: 0.0625rem solid var(--islandora-border);
+  border-radius: var(--islandora-radius-sm);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.625rem 0.75rem;
+  margin: 0 0 1.25rem;
+  padding: 0.75rem;
+}
+
+.view-solr-search-content
+  .views-filters-summary:not(:has(.value-container)) {
+  display: none;
+}
+
+.view-solr-search-content .views-filters-summary .prefix {
+  color: var(--dxt-color-headings, #1a1a1a);
+  flex: 0 0 auto;
+  font-weight: 650;
+  line-height: 1.35;
+}
+
+.view-solr-search-content .views-filters-summary .items {
+  align-items: center;
+  display: flex;
+  flex: 1 1 22rem;
+  flex-wrap: wrap;
+  gap: 0.5rem 0.625rem;
+  list-style: none;
+  margin: 0;
+  min-width: 0;
+  padding: 0;
+}
+
+.view-solr-search-content .views-filters-summary .item,
+.view-solr-search-content .views-filters-summary .values {
+  align-items: center;
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+  min-width: 0;
+}
+
+.view-solr-search-content .views-filters-summary .label {
+  color: var(--islandora-muted);
+  display: inline-block;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  line-height: 1.35;
+  margin: 0;
+}
+
+.view-solr-search-content .views-filters-summary .value-container {
+  align-items: center;
+  display: inline-flex;
+  margin: 0;
+  max-width: 100%;
+  white-space: normal;
+}
+
+.html
+  .view-solr-search-content
+  .views-filters-summary
+  :is(a.remove-filter, strong.value) {
+  align-items: center;
+  background: var(--islandora-surface);
+  border: 0.0625rem solid var(--dxt-color-base, #6844ca);
+  border-radius: 999rem;
+  color: var(--dxt-color-headings, #1a1a1a);
+  display: inline-flex;
+  font-size: 0.875rem;
+  font-weight: 600;
+  gap: 0.375rem;
+  line-height: 1.25;
+  margin: 0;
+  max-width: 100%;
+  min-height: 2.75rem;
+  overflow-wrap: anywhere;
+  padding: 0.4rem 0.45rem 0.4rem 0.75rem;
+  text-align: start;
+  text-decoration: none;
+}
+
+.html
+  .view-solr-search-content
+  .views-filters-summary
+  a.remove-filter:not(.disabled):hover {
+  background: color-mix(
+    in srgb,
+    var(--dxt-color-base, #6844ca) 10%,
+    var(--islandora-surface)
+  );
+  color: var(--dxt-color-headings, #1a1a1a);
+}
+
+.view-solr-search-content
+  .views-filters-summary
+  .remove-label {
+  display: inline;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  text-decoration: none;
+}
+
+.view-solr-search-content
+  .views-filters-summary
+  .remove-button {
+  align-items: center;
+  align-self: center;
+  background: var(--dxt-color-base, #6844ca);
+  border-radius: 50%;
+  color: var(--dxt-color-basetext, #fff);
+  display: inline-flex;
+  flex: 0 0 1.5rem;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  height: 1.5rem;
+  justify-content: center;
+  line-height: 1;
+  margin: 0;
+  text-decoration: none;
+  width: 1.5rem;
+}
+
+.html .view-solr-search-content .views-filters-summary a.reset {
+  align-items: center;
+  align-self: center;
+  background: var(--islandora-surface);
+  border: 0.0625rem solid var(--islandora-control-border);
+  border-radius: 999rem;
+  color: var(--dxt-color-base, #6844ca);
+  display: inline-flex;
+  flex: 0 0 auto;
+  font-size: 0.875rem;
+  font-weight: 650;
+  justify-content: center;
+  margin: 0 0 0 auto;
+  min-height: 2.75rem;
+  padding: 0.45rem 0.875rem;
+  text-decoration: underline;
+  text-underline-offset: 0.14em;
+}
+
+.html
+  .view-solr-search-content
+  .views-filters-summary
+  a.reset:not(.disabled):hover {
+  background: color-mix(
+    in srgb,
+    var(--dxt-color-base, #6844ca) 8%,
+    var(--islandora-surface)
+  );
+  border-color: var(--dxt-color-base, #6844ca);
+}
+
+.view-solr-search-content
+  .views-filters-summary
+  :is(a.remove-filter, a.reset).disabled {
+  opacity: 0.65;
+}
+
+.html
+  .view-solr-search-content
+  .views-filters-summary
+  :is(a.remove-filter, a.reset):focus-visible {
+  outline: 0.1875rem solid var(--islandora-focus);
+  outline-offset: 0.1875rem;
 }
 
 .facet-item {
@@ -369,39 +1803,291 @@
   width: 100%;
 }
 
-:is(
-    form[id^="advanced-search-form"],
-    form[id^="islandora-advanced-search-form"]
-  )
-  [data-drupal-selector="edit-terms"] {
+/* Fielded search is a compact query builder, not another filter sidebar. */
+.region-content > .advanced-search-form,
+.view-solr-search-content .view-header > .advanced-search-form {
+  background: var(--dxt-color-silver, #f4f4f4);
+  background: color-mix(
+    in srgb,
+    var(--dxt-color-base, #6844ca) 5%,
+    var(--islandora-surface)
+  );
+  border: 0;
+  border-radius: var(--islandora-radius);
+  box-shadow: var(--islandora-shadow-sm);
+  margin-bottom: clamp(1.5rem, 4vw, 2.5rem);
+  padding: clamp(1rem, 3vw, 1.5rem);
+}
+
+.region-content > .advanced-search-form > .block-title,
+.view-solr-search-content
+  .view-header
+  > .advanced-search-form
+  > .block-title {
+  font-size: clamp(1.35rem, 2vw, 1.65rem);
+  margin: 0 0 1rem;
+}
+
+.region-content > .advanced-search-form > .block-hr,
+.view-solr-search-content
+  .view-header
+  > .advanced-search-form
+  > .block-hr {
+  display: none;
+}
+
+.islandora-advanced-search > form[id^="advanced-search-form"] {
+  align-items: center;
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  margin: 0;
+}
+
+.islandora-advanced-search__builder {
+  grid-column: 1 / -1;
+  min-width: 0;
+}
+
+/*
+ * Advanced Search applies `display: initial !important` to every element
+ * whose ID begins with `edit-terms`. Keep these selectors more specific than
+ * that upstream rule so library/aggregation order cannot dismantle the grid.
+ */
+.islandora-advanced-search .islandora-advanced-search__conditions {
   display: grid !important;
   gap: 0.75rem;
 }
 
-:is(
-    form[id^="advanced-search-form"],
-    form[id^="islandora-advanced-search-form"]
-  )
-  .form-item {
-  margin-bottom: 0.75rem;
+.islandora-advanced-search .islandora-advanced-search__condition {
+  align-items: center;
+  display: grid !important;
+  gap: 0.625rem;
+  grid-template-areas: "conjunction field operator value term-actions";
+  grid-template-columns:
+    minmax(5rem, 0.7fr)
+    minmax(8rem, 1.15fr)
+    minmax(5rem, 0.7fr)
+    minmax(10rem, 2fr)
+    max-content;
+  min-width: 0;
+}
+
+.islandora-advanced-search .islandora-advanced-search__condition--first {
+  grid-template-areas: "field operator value term-actions";
+  grid-template-columns:
+    minmax(8rem, 1.15fr)
+    minmax(5rem, 0.7fr)
+    minmax(10rem, 2fr)
+    max-content;
+}
+
+.islandora-advanced-search__conjunction {
+  grid-area: conjunction;
+}
+
+.islandora-advanced-search__field {
+  grid-area: field;
+}
+
+.islandora-advanced-search__operator {
+  grid-area: operator;
+}
+
+.islandora-advanced-search__value {
+  grid-area: value;
+}
+
+.islandora-advanced-search__condition > :where(.form-select, .form-control) {
+  min-width: 0;
+  width: 100%;
 }
 
 .html
+  .islandora-advanced-search__condition
+  > :is(.form-select, .form-control) {
+  background-color: var(--islandora-surface);
+  border-color: var(--islandora-control-border);
+  border-radius: var(--islandora-radius-sm);
+  box-sizing: border-box;
+  box-shadow: none;
+  height: 2.75rem;
+  line-height: 1.5;
+  margin: 0 !important;
+  padding-block: 0.5rem;
+}
+
+.islandora-advanced-search .islandora-advanced-search__condition-actions {
+  align-items: center;
+  display: flex !important;
+  gap: 0.375rem;
+  grid-area: term-actions;
+  justify-self: end;
+  margin: 0;
+}
+
+.html
+  .islandora-advanced-search__condition-actions
   input:is(
     .advanced-search-form__add,
     .advanced-search-form__remove,
     .islandora-advanced-search-form__add,
     .islandora-advanced-search-form__remove
   ) {
-  color: var(--dxt-color-link, #6844ca);
+  align-items: center;
+  background: var(--dxt-color-base, #6844ca) !important;
+  border: 0.0625rem solid var(--dxt-color-base, #6844ca) !important;
+  border-radius: var(--islandora-radius-sm);
+  color: var(--dxt-color-basetext, #fff);
+  display: inline-flex;
+  font-family: inherit;
+  font-size: 1.35rem;
+  font-weight: 600;
+  height: 2.75rem;
+  justify-content: center;
+  line-height: 1;
+  margin: 0;
+  min-width: 2.75rem;
+  padding: 0 !important;
+  width: 2.75rem;
+}
+
+.html
+  .islandora-advanced-search__condition-actions
+  input:is(
+    .advanced-search-form__remove,
+    .islandora-advanced-search-form__remove
+  ) {
+  background: var(--islandora-surface) !important;
+  color: var(--dxt-color-base, #6844ca);
+}
+
+.html
+  .islandora-advanced-search__condition-actions
+  input:is(
+    .advanced-search-form__add,
+    .advanced-search-form__remove,
+    .islandora-advanced-search-form__add,
+    .islandora-advanced-search-form__remove
+  ):hover {
+  box-shadow: var(--islandora-shadow-sm);
+  filter: brightness(0.94);
+  text-decoration: none;
+}
+
+.html
+  .islandora-advanced-search
+  input:is(
+    .islandora-advanced-search__reset,
+    .islandora-advanced-search__submit
+  ) {
+  margin: 0;
   min-height: 2.75rem;
-  padding: 0.5rem !important;
+  min-width: 7rem;
+  padding-inline: 1.25rem;
+}
+
+.html
+  .islandora-advanced-search
+  input.islandora-advanced-search__reset {
+  background: var(--islandora-surface);
+  border-color: var(--dxt-color-base, #6844ca);
+  color: var(--dxt-color-base, #6844ca);
+  grid-column: 2;
+}
+
+.html
+  .islandora-advanced-search
+  input.islandora-advanced-search__submit {
+  grid-column: 3;
 }
 
 :is(.advanced_search_result_pager, .islandora_advanced_search_result_pager)
-  .pager__group {
+  .islandora-search-results-toolbar {
   border-color: var(--islandora-border);
-  gap: 0.75rem 1.5rem;
+  display: grid;
+  gap: 0.75rem 1.25rem;
+  grid-template-columns: minmax(12rem, 1fr) repeat(3, auto);
+  align-items: center;
+  justify-content: stretch;
+}
+
+:is(.advanced_search_result_pager, .islandora_advanced_search_result_pager)
+  .islandora-search-results-toolbar
+  > * {
+  align-self: center;
+  margin: 0;
+  min-width: 0;
+}
+
+:is(.advanced_search_result_pager, .islandora_advanced_search_result_pager)
+  .pager__summary {
+  white-space: nowrap;
+}
+
+:is(.advanced_search_result_pager, .islandora_advanced_search_result_pager)
+  :is(.pager__sort, .pager__results--dropdown) {
+  display: block;
+}
+
+:is(.advanced_search_result_pager, .islandora_advanced_search_result_pager)
+  .pager__results--dropdown
+  .pager__results-dropdown-control,
+:is(.advanced_search_result_pager, .islandora_advanced_search_result_pager)
+  .pager__results--dropdown.is-enhanced
+  .pager__results--fallback {
+  display: none;
+}
+
+:is(.advanced_search_result_pager, .islandora_advanced_search_result_pager)
+  .pager__results--dropdown.is-enhanced
+  .pager__results-dropdown-control {
+  display: block;
+  margin: 0;
+}
+
+:is(.advanced_search_result_pager, .islandora_advanced_search_result_pager)
+  :is(.pager__sort select, .pager__items-per-page-select) {
+  min-height: 2.75rem;
+  width: auto;
+}
+
+:is(.advanced_search_result_pager, .islandora_advanced_search_result_pager)
+  .pager__sort select {
+  min-width: 12rem;
+}
+
+:is(.advanced_search_result_pager, .islandora_advanced_search_result_pager)
+  .pager__items-per-page-select {
+  min-width: 10rem;
+}
+
+:is(.advanced_search_result_pager, .islandora_advanced_search_result_pager)
+  .pager__results--links {
+  align-content: end;
+  display: grid;
+  gap: 0.25rem;
+  grid-template-columns: minmax(0, 1fr);
+}
+
+:is(.advanced_search_result_pager, .islandora_advanced_search_result_pager)
+  .pager__results--links
+  > :is(.item-list__title, h3, strong) {
+  display: block;
+  font-size: 0.875rem;
+  line-height: 1.2;
+  margin: 0;
+}
+
+:is(.advanced_search_result_pager, .islandora_advanced_search_result_pager)
+  :is(.pager__results--links, .pager__display)
+  > :is(.item-list__list, ul) {
+  align-items: center;
+  display: inline-flex;
+  flex-wrap: nowrap;
+  gap: 0.25rem;
+  margin: 0;
+  padding: 0;
 }
 
 :is(.advanced_search_result_pager, .islandora_advanced_search_result_pager)
@@ -420,6 +2106,45 @@
   .pager__link--is-active {
   border-color: var(--dxt-color-base, #6844ca);
   border-width: 0.125rem;
+}
+
+:is(.advanced_search_result_pager, .islandora_advanced_search_result_pager)
+  .islandora-search-results-toolbar
+  > :is(.pager, .pager-nav) {
+  align-items: center;
+  display: flex;
+  min-height: 2.75rem;
+}
+
+:is(.advanced_search_result_pager, .islandora_advanced_search_result_pager)
+  .islandora-search-results-toolbar
+  > :is(.pager, .pager-nav)
+  > :is(.pager__items, .pagination) {
+  align-items: center;
+  display: flex;
+  margin: 0;
+  padding: 0;
+}
+
+:is(.advanced_search_result_pager, .islandora_advanced_search_result_pager)
+  .islandora-search-results-toolbar
+  > :is(.pager, .pager-nav)
+  :is(.pager__item, .page-item) {
+  display: flex;
+  padding: 0;
+}
+
+:is(.advanced_search_result_pager, .islandora_advanced_search_result_pager)
+  .islandora-search-results-toolbar
+  > :is(.pager, .pager-nav)
+  :is(.pager__item, .page-item)
+  > :is(a, .page-link) {
+  align-items: center;
+  border-radius: var(--islandora-radius-sm);
+  display: inline-flex;
+  justify-content: center;
+  min-height: 2.75rem;
+  padding: 0.45rem 0.7rem;
 }
 
 /* Media viewers, OAI links, and newspaper issues. */
@@ -461,6 +2186,54 @@ iframe.pdf {
   height: 100%;
 }
 
+.region-content > :where(.block-citation-select, .block-views-blockoai-pmh-item-links-block-1) {
+  background: var(--islandora-surface);
+  border: 0.0625rem solid var(--islandora-border);
+  border-radius: var(--islandora-radius);
+  box-shadow: var(--islandora-shadow-sm);
+  margin-top: 1.25rem;
+  padding: clamp(1rem, 3vw, 1.5rem);
+}
+
+.region-content
+  > :where(.block-citation-select, .block-views-blockoai-pmh-item-links-block-1)
+  > .block-title {
+  font-size: clamp(1.25rem, 2vw, 1.5rem);
+  margin: 0 0 0.875rem;
+}
+
+.block-citation-select .citation-container {
+  align-items: end;
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: minmax(12rem, 1fr) auto;
+}
+
+.block-citation-select .citation-container > .left-col {
+  min-width: 0;
+}
+
+.block-citation-select .citation-container > .right-col {
+  margin: 0;
+}
+
+.block-citation-select .citation-container select {
+  min-height: 2.75rem;
+  width: 100%;
+}
+
+.block-citation-select #formatted-bibliography {
+  background: var(--dxt-color-silver, #f4f4f4);
+  border-radius: var(--islandora-radius-sm);
+  grid-column: 1 / -1;
+  line-height: 1.6;
+  padding: 0.75rem;
+}
+
+.block-citation-select #formatted-bibliography:empty {
+  display: none;
+}
+
 .islandora-oai-links {
   border-radius: var(--islandora-radius-sm);
   overflow: hidden;
@@ -469,6 +2242,32 @@ iframe.pdf {
 .islandora-oai-link-group {
   border-color: var(--islandora-border);
   padding: 0.85rem 1rem;
+}
+
+.islandora-oai-link-group .field-content {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.625rem;
+}
+
+.islandora-oai-link-group .field-content br {
+  display: none;
+}
+
+.islandora-oai-link-group .field-content a {
+  align-items: center;
+  border: 0.0625rem solid var(--dxt-color-base, #6844ca);
+  border-radius: var(--islandora-radius-sm);
+  display: inline-flex;
+  min-height: 2.75rem;
+  padding: 0.5rem 0.75rem;
+  text-decoration: none;
+}
+
+.islandora-oai-link-group .field-content a:hover,
+.islandora-oai-link-group .field-content a:focus-visible {
+  background: var(--dxt-color-base, #6844ca);
+  color: var(--dxt-color-basetext, #fff);
 }
 
 .view-newspaper-issues-accordion-view .accordion {
@@ -497,13 +2296,56 @@ iframe.pdf {
 }
 
 /* Metadata, tables, messages, and administrative affordances. */
-.node--type-islandora-object .field:not(.field--name-field-media-of) {
-  margin-bottom: 1rem;
+.islandora-object.full .islandora-metadata-group {
+  background: var(--islandora-surface);
+  border: 0.0625rem solid var(--islandora-border) !important;
+  border-radius: var(--islandora-radius);
+  box-shadow: var(--islandora-shadow-sm);
+  margin-bottom: 1.25rem !important;
+  overflow: hidden;
+  padding-top: 0 !important;
 }
 
-.node--type-islandora-object .field__label {
+.islandora-object.full .islandora-metadata-group > h2 {
+  background: var(--dxt-color-silver, #f4f4f4);
+  border-bottom: 0.0625rem solid var(--islandora-border);
+  font-size: clamp(1.2rem, 2vw, 1.45rem);
+  margin: 0 !important;
+  padding: 0.85rem 1.25rem;
+}
+
+.islandora-object.full
+  .islandora-metadata-group
+  > .field:not(.field--name-field-media-of) {
+  align-items: start;
+  border-bottom: 0.0625rem solid var(--islandora-border);
+  display: grid;
+  gap: 0.35rem clamp(1rem, 3vw, 2rem);
+  grid-template-columns: minmax(10rem, 28%) minmax(0, 1fr);
+  margin: 0;
+  padding: 0.85rem 1.25rem;
+}
+
+.islandora-object.full
+  .islandora-metadata-group
+  > .field:last-child {
+  border-bottom: 0;
+}
+
+.islandora-object.full .islandora-metadata-group .field__label {
   color: var(--dxt-color-headings, #1a1a1a);
+  float: none;
   font-weight: 600;
+  margin: 0;
+  padding: 0;
+  width: auto;
+}
+
+.islandora-object.full
+  .islandora-metadata-group
+  :where(.field__item, .field__items) {
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .table-responsive {
@@ -531,25 +2373,183 @@ iframe.pdf {
   padding: 0;
 }
 
+.dxpr-theme-footer .block-node-syndicate-block a {
+  align-items: center;
+  display: inline-flex;
+  min-height: 2.75rem;
+}
+
+@media (max-width: 61.999rem) {
+  :is(.advanced_search_result_pager, .islandora_advanced_search_result_pager)
+    .islandora-search-results-toolbar {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .islandora-mobile-filter-toggle-wrapper:not([hidden]) {
+    display: block;
+    flex: 0 0 auto;
+    margin-bottom: 1.25rem;
+    width: 100%;
+  }
+
+  .main-container > .row > :where(aside, section) {
+    flex: 0 0 auto;
+    width: 100%;
+  }
+
+  .main-container > .row > aside.col-sm-3 {
+    margin-bottom: 2rem;
+  }
+}
+
 @media (max-width: 74.999rem) {
-  .dxpr-theme-header .block-search-block input[type="text"],
-  .dxpr-theme-header .block-search-block input[type="search"] {
+  .view-solr-search-content.view-grid .islandora-search-results {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 35.999rem) {
+  :is(.advanced_search_result_pager, .islandora_advanced_search_result_pager)
+    .islandora-search-results-toolbar {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .view-solr-search-content .views-filters-summary {
+    align-items: flex-start;
+  }
+
+  .view-solr-search-content .views-filters-summary :is(.prefix, .items) {
+    flex-basis: 100%;
+  }
+
+  .html .view-solr-search-content .views-filters-summary a.reset {
+    margin-inline-start: 0;
+  }
+
+  :is(.advanced_search_result_pager, .islandora_advanced_search_result_pager)
+    :is(.pager__sort select, .pager__items-per-page-select) {
+    width: 100%;
+  }
+
+  .islandora-search-result__layout.has-image {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .islandora-search-result__media {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .islandora-search-result__body {
+    grid-row: 2;
+  }
+
+  .view-solr-search-content
+    .islandora-search-result
+    .views-field-did-image {
+    float: none;
+    margin: 0 0 1rem;
+    max-width: none;
+    width: 100%;
+  }
+}
+
+@media (max-width: 74.999rem) {
+  .html
+    .dxpr-theme-header
+    .islandora-header-search__input[type="text"],
+  .html
+    .dxpr-theme-header
+    .islandora-header-search__input[type="search"] {
     min-width: 12rem;
   }
 }
 
 @media (max-width: 47.999rem) {
+  .view-solr-search-content.view-list .islandora-result-card {
+    flex-direction: column;
+  }
+
+  .view-solr-search-content.view-list
+    .islandora-result-card
+    > .views-field-did-image {
+    flex-basis: auto;
+  }
+
+  .view-solr-search-content.view-list
+    .islandora-result-card
+    > .views-field-did-image
+    img {
+    height: auto;
+  }
+
+  .view-solr-search-content.view-grid .islandora-search-results {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .islandora-object.full
+    .islandora-metadata-group
+    > .field:not(.field--name-field-media-of) {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .islandora-advanced-search .islandora-advanced-search__condition {
+    grid-template-areas:
+      "conjunction conjunction"
+      "field operator"
+      "value value"
+      "term-actions term-actions";
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .islandora-advanced-search .islandora-advanced-search__condition--first {
+    grid-template-areas:
+      "field operator"
+      "value value"
+      "term-actions term-actions";
+  }
+
+  .islandora-advanced-search .islandora-advanced-search__condition-actions {
+    justify-content: flex-end;
+  }
+
   .dxpr-theme-header #logo {
     max-width: min(15rem, 65vw);
   }
 
-  .dxpr-theme-header .block-search-block form {
+  .html .dxpr-theme-header .islandora-header-search {
     margin: 0.75rem;
   }
 
-  .dxpr-theme-header .block-search-block input[type="text"],
-  .dxpr-theme-header .block-search-block input[type="search"] {
+  .html
+    .dxpr-theme-header
+    .islandora-header-search__input[type="text"],
+  .html
+    .dxpr-theme-header
+    .islandora-header-search__input[type="search"] {
     min-width: 0;
+    width: 100%;
+  }
+
+  .islandora-search-filters .form-actions {
+    flex-direction: column;
+  }
+
+  .islandora-search-filters .form-actions .form-submit {
+    flex-basis: auto;
+    width: 100%;
+  }
+
+  .block-citation-select .citation-container {
+    align-items: stretch;
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .block-citation-select #formatted-bibliography {
+    grid-column: 1;
+  }
+
+  .block-citation-select .citation-container > .right-col .form-submit {
     width: 100%;
   }
 
@@ -572,6 +2572,40 @@ iframe.pdf {
   .mirador-viewer,
   iframe.pdf {
     min-height: 25rem;
+  }
+}
+
+@media (max-width: 35.999rem) {
+  .islandora-advanced-search .islandora-advanced-search__condition {
+    grid-template-areas:
+      "conjunction"
+      "field"
+      "operator"
+      "value"
+      "term-actions";
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .islandora-advanced-search .islandora-advanced-search__condition--first {
+    grid-template-areas:
+      "field"
+      "operator"
+      "value"
+      "term-actions";
+  }
+
+  .islandora-advanced-search > form[id^="advanced-search-form"] {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .html
+    .islandora-advanced-search
+    input:is(
+      .islandora-advanced-search__reset,
+      .islandora-advanced-search__submit
+    ) {
+    grid-column: 1;
+    width: 100%;
   }
 }
 
@@ -609,11 +2643,73 @@ iframe.pdf {
   }
 
   .islandora-collection-card,
+  .islandora-browse-result,
+  .islandora-metadata-group,
   .islandora-result-card,
   .islandora-search-result,
+  .view-solr-search-content .views-filters-summary,
   .region-sidebar-first > .block,
-  .region-sidebar-second > .block {
+  .region-sidebar-second > .block,
+  .islandora-search-filters
+    :where(fieldset.form-wrapper, details.form-wrapper.card) {
     border: 0.0625rem solid CanvasText;
+  }
+
+  .islandora-search-filters
+    details.form-wrapper
+    > summary.card-header::after {
+    border-color: ButtonText;
+  }
+
+  .islandora-search-filters
+    .bef-checkboxes
+    input.form-check-input[type="checkbox"] {
+    appearance: auto;
+    background-image: none;
+    forced-color-adjust: auto;
+  }
+
+  .islandora-search-filters
+    .facets-exposed-range-slider__slider
+    .noUi-connects {
+    border-color: CanvasText;
+  }
+
+  .islandora-search-filters
+    .facets-exposed-range-slider__slider
+    .noUi-connect {
+    background: Highlight;
+    forced-color-adjust: none;
+  }
+
+  .islandora-search-filters
+    .facets-exposed-range-slider__slider
+    .noUi-handle::before {
+    background: Canvas;
+    border-color: ButtonText;
+    forced-color-adjust: none;
+  }
+
+  .html
+    .islandora-search-filters
+    .facets-exposed-range-slider
+    .noUi-handle:focus-visible {
+    outline-color: Highlight;
+  }
+
+  .html
+    .view-solr-search-content
+    .views-filters-summary
+    :is(a.remove-filter, strong.value, a.reset) {
+    border-color: ButtonText;
+  }
+
+  .view-solr-search-content
+    .views-filters-summary
+    .remove-button {
+    background: Highlight;
+    color: HighlightText;
+    forced-color-adjust: none;
   }
 }
 
@@ -641,6 +2737,10 @@ iframe.pdf {
   .main-container {
     max-width: none;
     padding: 0;
+  }
+
+  .islandora-metadata-group {
+    box-shadow: none !important;
   }
 
   a {

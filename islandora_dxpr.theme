@@ -5,10 +5,72 @@
  * DXPR Theme sub-theme.
  */
 
+use Drupal\Component\Serialization\Json;
 use Drupal\Component\Utility\Html;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Render\Element;
 use Drupal\Core\StringTranslation\TranslatableMarkup;
+use Drupal\Core\Url;
+
+/**
+ * Gets an inherited theme setting across supported Drupal core versions.
+ */
+function islandora_dxpr_get_theme_setting(
+  string $setting_name,
+  ?string $theme = NULL,
+): mixed {
+  $provider_class = '\Drupal\Core\Extension\ThemeSettingsProvider';
+  if (
+    class_exists($provider_class) &&
+    \Drupal::hasService($provider_class)
+  ) {
+    return \Drupal::service($provider_class)->getSetting($setting_name, $theme);
+  }
+
+  // Drupal 10.3 through early Drupal 11 releases use this core API. The
+  // provider branch above avoids its deprecation on newer core releases.
+  return theme_get_setting($setting_name, $theme);
+}
+
+/**
+ * Implements hook_preprocess_page().
+ */
+function islandora_dxpr_preprocess_page(array &$variables): void {
+  if (
+    empty($variables['page']) ||
+    !\Drupal::moduleHandler()->moduleExists('block')
+  ) {
+    return;
+  }
+
+  $block_storage = \Drupal::entityTypeManager()->getStorage('block');
+  foreach ($variables['page'] as $region_key => &$region) {
+    if (str_starts_with((string) $region_key, '#') || !is_array($region)) {
+      continue;
+    }
+
+    foreach (Element::children($region) as $block_key) {
+      $block = &$region[$block_key];
+      if (($block['#create_placeholder'] ?? FALSE) !== TRUE) {
+        unset($block);
+        continue;
+      }
+
+      $block_id = $block['#lazy_builder'][1][0] ?? NULL;
+      $block_entity = is_string($block_id) ? $block_storage->load($block_id) : NULL;
+      if (
+        $block_entity &&
+        $block_entity->getPlugin()->getBaseId() === 'system_breadcrumb_block'
+      ) {
+        // Breadcrumbs are cheap to build. Resolve this one block before its
+        // parent region decides whether it has meaningful visible content.
+        $block['#create_placeholder'] = FALSE;
+      }
+      unset($block);
+    }
+  }
+  unset($region);
+}
 
 /**
  * Implements hook_preprocess_block().
@@ -23,12 +85,304 @@ function islandora_dxpr_preprocess_block(array &$variables): void {
   // the complete plugin ID, including derivative IDs.
   $variables['attributes']['class'][] = 'block-plugin-id--' . Html::getClass($plugin_id);
 
+  // An RSS link is useful footer content, but it is not a separate
+  // complementary landmark. Avoid nesting that landmark inside contentinfo.
+  if ($plugin_id === 'node_syndicate_block') {
+    unset($variables['attributes']['role']);
+  }
+
+  // Render the compact repository search with a real button so its icon can
+  // remain crisp in forced-colors mode while its translated label stays in
+  // the accessibility tree. The wrapper is changed here because the Advanced
+  // Search block builds the Form API element before the theme sees it.
+  if (
+    $plugin_id === 'search_block' &&
+    isset($variables['content']['actions']['submit'])
+  ) {
+    $form = &$variables['content'];
+    $form['#attributes']['class'][] = 'islandora-header-search';
+    if (isset($form['search-textfield'])) {
+      $form['search-textfield']['#attributes']['class'][] =
+        'islandora-header-search__input';
+      $placeholder =
+        $form['search-textfield']['#attributes']['placeholder'] ?? '';
+      if (trim((string) $placeholder) === '') {
+        $form['search-textfield']['#attributes']['placeholder'] =
+          new TranslatableMarkup('Search the repository');
+      }
+    }
+    $form['actions']['#attributes']['class'][] =
+      'islandora-header-search__actions';
+    $form['actions']['submit']['#attributes']['class'][] =
+      'islandora-header-search__submit';
+    $search_label = new TranslatableMarkup('Search the repository');
+    $form['actions']['submit']['#attributes']['aria-label'] = $search_label;
+    $form['actions']['submit']['#attributes']['data-bs-placement'] = 'bottom';
+    $form['actions']['submit']['#attributes']['data-bs-title'] = $search_label;
+    $form['actions']['submit']['#attributes']['data-bs-toggle'] = 'tooltip';
+    $form['actions']['submit']['#attributes']['data-islandora-tooltip'] = 'true';
+    unset($form['actions']['submit']['#attributes']['title']);
+    $variables['content']['actions']['submit']['#theme_wrappers'] = [
+      'input__submit__islandora_search',
+    ];
+    unset($form);
+  }
+
   // Advanced Search currently discovers pager blocks by the class emitted by
   // the Starter Site's former Olivero templates. Keep that public integration
   // point while using DXPR's block template so AJAX paging continues to work.
-  if (str_starts_with($plugin_id, 'advanced_search_result_pager:')) {
+  if (
+    str_starts_with($plugin_id, 'advanced_search_result_pager:') ||
+    str_starts_with($plugin_id, 'islandora_advanced_search_result_pager:')
+  ) {
     $variables['attributes']['class'][] = 'block-plugin-id--islandora-advanced-search-result-pager';
+    islandora_dxpr_prepare_search_results_toolbar($variables['content']);
+    islandora_dxpr_prepare_search_results_sort($variables['content']);
   }
+}
+
+/**
+ * Removes unusable sort choices and supplies concise, self-contained labels.
+ */
+function islandora_dxpr_prepare_search_results_sort(array &$content): void {
+  if (!isset($content['container']['sort_by'])) {
+    return;
+  }
+
+  $sort = &$content['container']['sort_by'];
+  unset(
+    $sort['#options']['search_api_relevance_asc'],
+    $sort['#options_attributes']['search_api_relevance_asc'],
+  );
+  $sort_labels = [
+    'search_api_relevance_desc' =>
+    new TranslatableMarkup('Sort by Relevance'),
+    'title_asc' => new TranslatableMarkup('Sort by Title (A–Z)'),
+    'title_desc' => new TranslatableMarkup('Sort by Title (Z–A)'),
+    'edtf_year_desc' =>
+    new TranslatableMarkup('Sort by Date (newest first)'),
+    'edtf_year_asc' =>
+    new TranslatableMarkup('Sort by Date (oldest first)'),
+  ];
+  foreach ($sort['#options'] as $key => $existing_label) {
+    if (isset($sort_labels[$key])) {
+      $sort['#options'][$key] = $sort_labels[$key];
+    }
+    elseif (!str_starts_with((string) $existing_label, 'Sort by ')) {
+      $sort['#options'][$key] = new TranslatableMarkup(
+        'Sort by @label',
+        ['@label' => (string) $existing_label],
+      );
+    }
+  }
+  unset($sort);
+}
+
+/**
+ * Orders and prepares the search result controls for theme presentation.
+ */
+function islandora_dxpr_prepare_search_results_toolbar(array &$content): void {
+  if (!isset($content['container']) || !is_array($content['container'])) {
+    return;
+  }
+
+  $container = &$content['container'];
+  $container['#prefix'] =
+    '<div class="pager__group islandora-search-results-toolbar">';
+
+  // Advanced Search renders the summary before its control group. Move the
+  // render array instead of copying its text so translations and cacheability
+  // metadata remain intact and the visual order matches the DOM order.
+  if (isset($content['result_summary'])) {
+    $container['result_summary'] = $content['result_summary'];
+    if (!empty($container['result_summary'])) {
+      $container['result_summary']['#prefix'] =
+        '<div class="pager__summary" role="status" aria-live="polite" aria-atomic="true">';
+      $container['result_summary']['#suffix'] = '</div>';
+    }
+    unset($content['result_summary']);
+  }
+
+  $active_theme = \Drupal::theme()->getActiveTheme()->getName();
+  $control = islandora_dxpr_get_theme_setting(
+    'search_results_per_page_control',
+    $active_theme,
+  );
+  $control = $control === 'links' ? 'links' : 'dropdown';
+  $content['#cache']['tags'][] = 'config:' . $active_theme . '.settings';
+
+  if (isset($container['results_per_page_links'])) {
+    if ($control === 'dropdown') {
+      $container['results_per_page_links'] =
+        islandora_dxpr_build_results_per_page_select(
+          $container['results_per_page_links'],
+        );
+    }
+    else {
+      $container['results_per_page_links']['#wrapper_attributes']['class'][] =
+        'pager__results--links';
+      $container['results_per_page_links']['#wrapper_attributes']['role'] =
+        'navigation';
+      $container['results_per_page_links']['#wrapper_attributes']['aria-label'] =
+        new TranslatableMarkup('Results per page');
+    }
+  }
+
+  // The module uses Bootstrap's page-level container class on individual
+  // controls. Remove it here so each control can occupy one toolbar track
+  // without inheriting container widths and gutters.
+  foreach (['sort_by', 'results_per_page_links', 'display_links'] as $key) {
+    if (!isset($container[$key]['#wrapper_attributes']['class'])) {
+      continue;
+    }
+    $container[$key]['#wrapper_attributes']['class'] = array_values(
+      array_diff(
+        $container[$key]['#wrapper_attributes']['class'],
+        ['container'],
+      ),
+    );
+  }
+
+  $weights = [
+    'result_summary' => -40,
+    'sort_by' => -30,
+    'results_per_page_links' => -20,
+    'display_links' => -10,
+    'pager' => 0,
+  ];
+  foreach ($weights as $key => $weight) {
+    if (isset($container[$key]) && is_array($container[$key])) {
+      $container[$key]['#weight'] = $weight;
+    }
+  }
+  unset($container);
+}
+
+/**
+ * Converts Advanced Search's page-size links into an accessible select list.
+ */
+function islandora_dxpr_build_results_per_page_select(array $links): array {
+  $label = new TranslatableMarkup('Results per page');
+  $page_size_options = [];
+  $page_size_urls = [];
+  $current_value = NULL;
+
+  foreach ($links['#items'] ?? [] as $item) {
+    if (!is_array($item)) {
+      continue;
+    }
+
+    $attributes = $item['#attributes'] ?? [];
+    $value = trim((string) (
+      $attributes['data-items-per-page'] ??
+      $attributes['itemsperpage'] ??
+      $item['#title'] ??
+      ''
+    ));
+    if ($value === '') {
+      continue;
+    }
+
+    $page_size_options[$value] = new TranslatableMarkup(
+      'Results per page (@count)',
+      ['@count' => $value],
+    );
+    $aria_current = strtolower((string) ($attributes['aria-current'] ?? ''));
+    $classes = (array) ($attributes['class'] ?? []);
+    $wrapper_classes = (array) (
+      $item['#wrapper_attributes']['class'] ?? []
+    );
+    if (
+      $aria_current === 'true' ||
+      $aria_current === 'page' ||
+      in_array('pager__link--is-active', $classes, TRUE) ||
+      in_array('is-active', $wrapper_classes, TRUE)
+    ) {
+      $current_value = $value;
+    }
+    $url = $item['#url'] ?? NULL;
+    if ($url instanceof Url) {
+      $page_size_urls[$value] = $url->toString();
+    }
+    elseif (is_string($url) && $url !== '') {
+      $page_size_urls[$value] = $url;
+    }
+  }
+
+  if ($page_size_options === [] || $page_size_urls === []) {
+    return $links;
+  }
+
+  // The empty-value option represents the current page size. Keep only the
+  // alternative sizes below it so the navigation select has no duplicate
+  // choice, while retaining every destination in the JavaScript URL map.
+  $current_value ??= (string) array_key_first($page_size_urls);
+  $options = [
+    '' => new TranslatableMarkup(
+      'Results per page (@count)',
+      ['@count' => $current_value],
+    ),
+  ];
+  foreach ($page_size_options as $value => $option_label) {
+    if ((string) $value !== $current_value) {
+      $options[$value] = $option_label;
+    }
+  }
+
+  $select = [
+    '#type' => 'select',
+    '#title' => $label,
+    '#title_display' => 'invisible',
+    '#description' => new TranslatableMarkup(
+      'Selecting a page size updates the search results.',
+    ),
+    '#description_display' => 'invisible',
+    '#options' => $options,
+    '#value' => '',
+    '#name' => 'items_per_page',
+    '#attributes' => [
+      'autocomplete' => 'off',
+      'aria-label' => $label,
+      'class' => ['pager__items-per-page-select'],
+      'disabled' => TRUE,
+      'data-islandora-results-per-page' => 'true',
+      'data-islandora-results-per-page-urls' => Json::encode($page_size_urls),
+    ],
+    '#wrapper_attributes' => [
+      'class' => ['pager__results-dropdown-control'],
+    ],
+  ];
+
+  // Keep the module's real links as progressive fallback. CSS presents these
+  // links until the theme behavior has parsed the URL map and enabled the
+  // select, so a JavaScript failure never leaves an inert control.
+  $fallback = $links;
+  $fallback['#wrapper_attributes']['class'] = array_values(array_unique([
+    ...array_diff(
+      $fallback['#wrapper_attributes']['class'] ?? [],
+      ['container'],
+    ),
+    'pager__results--links',
+    'pager__results--fallback',
+  ]));
+  $fallback['#wrapper_attributes']['role'] = 'navigation';
+  $fallback['#wrapper_attributes']['aria-label'] = $label;
+
+  $control = [
+    '#type' => 'container',
+    '#attributes' => [
+      'class' => ['pager__results', 'pager__results--dropdown'],
+    ],
+    'select' => $select,
+    'fallback' => $fallback,
+  ];
+  foreach (['#attached', '#cache'] as $metadata_key) {
+    if (isset($links[$metadata_key])) {
+      $control[$metadata_key] = $links[$metadata_key];
+    }
+  }
+
+  return $control;
 }
 
 /**
@@ -43,19 +397,320 @@ function islandora_dxpr_form_advanced_search_form_alter(
     return;
   }
 
-  foreach (Element::children($form['ajax']['terms']) as $term_key) {
-    $actions = &$form['ajax']['terms'][$term_key]['actions'];
-    if (isset($actions['add'])) {
-      $label = new TranslatableMarkup('Add another search condition');
-      $actions['add']['#attributes']['aria-label'] = $label;
-      $actions['add']['#attributes']['title'] = $label;
+  $term_keys = Element::children($form['ajax']['terms']);
+  foreach ($term_keys as $position => $term_key) {
+    $term = &$form['ajax']['terms'][$term_key];
+    $term['#type'] = 'container';
+    $term['#attributes']['class'][] =
+      'islandora-advanced-search__condition';
+    $term['#attributes']['role'] = 'group';
+    $term['#attributes']['aria-label'] = new TranslatableMarkup(
+      'Search condition @number',
+      ['@number' => $position + 1],
+    );
+    if (!isset($term['conjunction'])) {
+      $term['#attributes']['class'][] =
+        'islandora-advanced-search__condition--first';
+    }
+    else {
+      $term['#attributes']['class'][] =
+        'islandora-advanced-search__condition--additional';
+    }
+
+    $control_classes = [
+      'conjunction' => 'conjunction',
+      'search' => 'field',
+      'include' => 'operator',
+      'value' => 'value',
+    ];
+    foreach ($control_classes as $control_key => $class_suffix) {
+      if (isset($term[$control_key])) {
+        $term[$control_key]['#attributes']['class'][] =
+          'islandora-advanced-search__' . $class_suffix;
+      }
+    }
+
+    $actions = &$term['actions'];
+    $actions['#attributes']['class'][] =
+      'islandora-advanced-search__condition-actions';
+    $action_labels = [
+      'add' => new TranslatableMarkup('Add another search condition'),
+      'remove' => new TranslatableMarkup('Remove this search condition'),
+    ];
+    foreach ($action_labels as $action_key => $label) {
+      if (!isset($actions[$action_key])) {
+        continue;
+      }
+
+      $actions[$action_key]['#attributes']['aria-label'] = $label;
+      $actions[$action_key]['#attributes']['data-bs-placement'] = 'top';
+      $actions[$action_key]['#attributes']['data-bs-title'] = $label;
+      $actions[$action_key]['#attributes']['data-bs-toggle'] = 'tooltip';
+      $actions[$action_key]['#attributes']['data-islandora-tooltip'] = 'true';
+      unset($actions[$action_key]['#attributes']['title']);
     }
     if (isset($actions['remove'])) {
-      $label = new TranslatableMarkup('Remove this search condition');
-      $actions['remove']['#attributes']['aria-label'] = $label;
-      $actions['remove']['#attributes']['title'] = $label;
+      $actions['remove']['#weight'] = 0;
+    }
+    if (isset($actions['add'])) {
+      // Keep the additive action at the far edge in visual and tab order.
+      $actions['add']['#weight'] = 10;
     }
     unset($actions);
+    unset($term);
+  }
+
+  $form['#attributes']['class'][] = 'islandora-advanced-search';
+  $form['#attributes']['aria-label'] =
+    new TranslatableMarkup('Advanced search');
+  $form['ajax']['#attributes']['class'][] =
+    'islandora-advanced-search__builder';
+  $form['ajax']['terms']['#attributes']['class'][] =
+    'islandora-advanced-search__conditions';
+
+  // This form shares Drupal's default edit-submit ID with the compact header
+  // search when both blocks are present on collection and search pages.
+  if (isset($form['submit'])) {
+    $form['submit']['#attributes']['id'] = 'edit-submit-advanced-search';
+    $form['submit']['#attributes']['class'][] =
+      'islandora-advanced-search__submit';
+  }
+  if (isset($form['reset'])) {
+    $form['reset']['#attributes']['id'] = 'edit-reset-advanced-search';
+    $form['reset']['#attributes']['class'][] =
+      'islandora-advanced-search__reset';
+  }
+}
+
+/**
+ * Implements hook_theme_suggestions_HOOK_alter() for fieldset.
+ */
+function islandora_dxpr_theme_suggestions_fieldset_alter(
+  array &$suggestions,
+  array $variables,
+): void {
+  $selector =
+    $variables['element']['#attributes']['data-drupal-selector'] ?? '';
+  if ($selector === 'edit-resource-type') {
+    $suggestions[] = 'fieldset__islandora_facet_resource_type';
+  }
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter() for Views exposed forms.
+ */
+function islandora_dxpr_form_views_exposed_form_alter(
+  array &$form,
+  FormStateInterface $form_state,
+  string $form_id,
+): void {
+  $view = $form_state->get('view');
+  if (!is_object($view) || $view->id() !== 'solr_search_content') {
+    return;
+  }
+
+  $display_id = $view->current_display;
+  if (!in_array($display_id, ['page_1', 'block_1'], TRUE)) {
+    return;
+  }
+
+  $form['#attributes']['class'][] = 'islandora-search-filters';
+  $form['#attributes']['aria-label'] = $display_id === 'block_1'
+    ? new TranslatableMarkup('Filter collection items')
+    : new TranslatableMarkup('Filter search results');
+
+  // Advanced Search provides the result toolbar for these displays. Keep one
+  // sorting and page-size control set instead of repeating it in the filters.
+  unset($form['sort_by'], $form['sort_order'], $form['items_per_page']);
+
+  if ($display_id === 'block_1') {
+    // The inherited View action points at /search and drops the collection's
+    // contextual argument. Views also restores path.current during its AJAX
+    // callback, so this remains the collection path after every rebuild.
+    $current_path = \Drupal::service('path.current')->getPath();
+    $form['#action'] = Url::fromUserInput($current_path)->toString();
+    $form['#cache']['contexts'][] = 'url.path';
+  }
+
+  $suffix = Html::getClass($view->id() . '-' . $display_id);
+  if (isset($form['actions'])) {
+    $form['actions']['#attributes']['id'] = 'edit-actions-' . $suffix;
+    foreach (Element::children($form['actions']) as $action_key) {
+      $form['actions'][$action_key]['#attributes']['id'] =
+        'edit-' . Html::getClass($action_key) . '-' . $suffix;
+    }
+  }
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter() for the citation selector.
+ */
+function islandora_dxpr_form_citation_select_select_citation_alter(
+  array &$form,
+  FormStateInterface $form_state,
+  string $form_id,
+): void {
+  // The citation block can appear beside the compact header search. Both use
+  // Drupal's generic actions/submit keys, so give the citation controls unique
+  // document IDs while leaving their form API selectors intact.
+  if (isset($form['container-citation']['actions'])) {
+    $actions = &$form['container-citation']['actions'];
+    $actions['#attributes']['id'] = 'edit-actions-citation-select';
+    if (isset($actions['submit'])) {
+      $actions['submit']['#attributes']['id'] = 'edit-submit-citation-select';
+    }
+  }
+}
+
+/**
+ * Implements hook_preprocess_HOOK() for menu.
+ */
+function islandora_dxpr_preprocess_menu(array &$variables): void {
+  if (!isset($variables['items']) || !is_array($variables['items'])) {
+    return;
+  }
+
+  $route_match = \Drupal::routeMatch();
+  $current_route = (string) $route_match->getRouteName();
+  $current_parameters = $route_match->getRawParameters()->all();
+  $current_path = \Drupal::service('path.current')->getPath();
+  islandora_dxpr_mark_current_menu_items(
+    $variables['items'],
+    $current_route,
+    $current_parameters,
+    $current_path,
+  );
+}
+
+/**
+ * Marks the current menu item and its ancestors for accessible presentation.
+ */
+function islandora_dxpr_mark_current_menu_items(
+  array &$items,
+  string $current_route,
+  array $current_parameters,
+  string $current_path,
+): bool {
+  $contains_active_item = FALSE;
+
+  foreach ($items as &$item) {
+    $is_current = FALSE;
+    $url = $item['url'] ?? NULL;
+
+    if ($url instanceof Url && $url->isRouted()) {
+      $is_current = $url->getRouteName() === $current_route;
+      foreach ($url->getRouteParameters() as $key => $value) {
+        $is_current = $is_current &&
+          isset($current_parameters[$key]) &&
+          (string) $current_parameters[$key] === (string) $value;
+      }
+
+      if (!$is_current) {
+        $item_path = parse_url($url->toString(), PHP_URL_PATH) ?: '/';
+        $is_current = rtrim($item_path, '/') === rtrim($current_path, '/');
+      }
+    }
+
+    $child_is_active = FALSE;
+    if (!empty($item['below']) && is_array($item['below'])) {
+      $child_is_active = islandora_dxpr_mark_current_menu_items(
+        $item['below'],
+        $current_route,
+        $current_parameters,
+        $current_path,
+      );
+    }
+
+    $item['is_current'] = $is_current;
+    if ($is_current || $child_is_active) {
+      $item['in_active_trail'] = TRUE;
+    }
+    $contains_active_item = $contains_active_item ||
+      !empty($item['in_active_trail']);
+  }
+  unset($item);
+
+  return $contains_active_item;
+}
+
+/**
+ * Implements hook_preprocess_HOOK() for views_view.
+ */
+function islandora_dxpr_preprocess_views_view(array &$variables): void {
+  $view = $variables['view'] ?? NULL;
+  if (!is_object($view)) {
+    return;
+  }
+
+  if (
+    $view->id() === 'solr_search_content' &&
+    in_array(($view->current_display ?? ''), ['page_1', 'block_1'], TRUE) &&
+    isset($variables['header']['advanced_search_results_toolbar'])
+  ) {
+    $toolbar = &$variables['header']['advanced_search_results_toolbar'];
+    islandora_dxpr_prepare_search_results_toolbar($toolbar);
+    islandora_dxpr_prepare_search_results_sort($toolbar);
+    unset($toolbar);
+    return;
+  }
+
+  if ($view->id() !== 'top_level_collections') {
+    return;
+  }
+
+  if (($view->current_display ?? '') !== 'page_1') {
+    return;
+  }
+
+  // Generate this prominent discovery link through Drupal so language prefixes
+  // and installations below a web-root continue to resolve the search route.
+  $variables['header']['islandora_search_cta'] = [
+    '#type' => 'link',
+    '#title' => new TranslatableMarkup('Search all repository content'),
+    '#url' => Url::fromRoute('view.solr_search_content.page_1'),
+    '#attributes' => [
+      'class' => ['islandora-collections-search-cta'],
+    ],
+    '#prefix' => '<p class="islandora-collections-search-action">',
+    '#suffix' => '</p>',
+  ];
+}
+
+/**
+ * Implements hook_preprocess_HOOK() for image_style.
+ */
+function islandora_dxpr_preprocess_image_style(array &$variables): void {
+  if (($variables['style_name'] ?? '') !== 'islandora_card') {
+    return;
+  }
+
+  if (!isset($variables['image']) || !is_array($variables['image'])) {
+    return;
+  }
+
+  $image = &$variables['image'];
+  $alt = trim((string) ($image['#alt'] ?? $image['#attributes']['alt'] ?? ''));
+  $uri = (string) ($image['#uri'] ?? '');
+  $path = parse_url($uri, PHP_URL_PATH) ?: $uri;
+  $filename = rawurldecode(basename($path));
+  $normalized_alt = preg_replace('/[^\p{L}\p{N}]+/u', '', $alt) ?? '';
+  $normalized_filename = preg_replace('/[^\p{L}\p{N}]+/u', '', $filename) ?? '';
+
+  // Starter content can inherit a source filename as its alternative. That
+  // adds noise beside the linked record title, while genuinely authored alt
+  // text can convey useful thumbnail information and must be preserved. The
+  // normalized comparison accommodates Drupal's filename sanitization.
+  if (
+    $alt !== '' &&
+    $filename !== '' &&
+    (
+      strcasecmp($alt, $filename) === 0 ||
+      ($normalized_alt !== '' &&
+        strcasecmp($normalized_alt, $normalized_filename) === 0)
+    )
+  ) {
+    $image['#alt'] = '';
+    $image['#attributes']['alt'] = '';
   }
 }
 

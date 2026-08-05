@@ -3,3 +3,12 @@
 islandora_dxpr.settings:
   type: theme_settings
   label: 'Islandora DXPR Theme settings'
+  mapping:
+    search_results_per_page_control:
+      type: string
+      label: 'Results-per-page control'
+      constraints:
+        Choice:
+          choices:
+            - dropdown
+            - links

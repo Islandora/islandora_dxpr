@@ -1,0 +1,44 @@
+{#
+/**
+ * @file
+ * Form override presenting the primary Resource type facet as a disclosure.
+ *
+ * It retains the fieldset render variables while matching the details markup
+ * emitted by Better Exposed Filters for the remaining primary facets.
+ */
+#}
+{% set classes = [
+  'js-form-item',
+  'form-item',
+  'js-form-wrapper',
+  'form-wrapper',
+  'card',
+] %}
+{% set summary_classes = [
+  'card-header',
+  required ? 'js-form-required',
+  required ? 'form-required',
+] %}
+<details{{ attributes.addClass(classes) }}>
+  <summary{{ legend.attributes.addClass(summary_classes) }}>
+    {{ legend.title }}
+  </summary>
+  <div class="details-wrapper card-body">
+    {% if description_display == 'before' and description.content %}
+      <div{{ description.attributes.addClass('description') }}>{{ description.content }}</div>
+    {% endif %}
+    {% if errors %}
+      <div>{{ errors }}</div>
+    {% endif %}
+    {% if prefix %}
+      <span class="field-prefix">{{ prefix }}</span>
+    {% endif %}
+    {{ children }}
+    {% if suffix %}
+      <span class="field-suffix">{{ suffix }}</span>
+    {% endif %}
+    {% if description_display in ['after', 'invisible'] and description.content %}
+      <div{{ description.attributes.addClass('description') }}>{{ description.content }}</div>
+    {% endif %}
+  </div>
+</details>

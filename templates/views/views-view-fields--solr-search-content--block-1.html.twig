@@ -1,0 +1,28 @@
+{#
+/**
+ * @file
+ * Views override for concise collection-member card fields.
+ */
+#}
+{% set description = fields.field_description.content|render %}
+{% if fields.did_image.content %}
+  <div class="views-field-did-image">{{ fields.did_image.content }}</div>
+{% endif %}
+<div class="islandora-card-body">
+  <h3>{{ fields.title.content }}</h3>
+  {% if fields.field_resource_type.content or fields.edtf_year.content %}
+    <div class="islandora-card-meta">
+      {% if fields.field_resource_type.content %}
+        <span>{{ fields.field_resource_type.content }}</span>
+      {% endif %}
+      {% if fields.edtf_year.content %}
+        <span>{{ fields.edtf_year.content }}</span>
+      {% endif %}
+    </div>
+  {% endif %}
+  {% if description|striptags|trim %}
+    <div class="islandora-card-description">{{ description }}</div>
+  {% elseif fields.processed.content %}
+    <div class="islandora-card-description">{{ fields.processed.content }}</div>
+  {% endif %}
+</div>

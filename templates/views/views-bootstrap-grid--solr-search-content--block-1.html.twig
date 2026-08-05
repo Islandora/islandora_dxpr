@@ -1,0 +1,19 @@
+{#
+/**
+ * @file
+ * Views override adding a card surface inside each Bootstrap grid column.
+ */
+#}
+{% set classes = ['views-view-grid', 'row'] %}
+{% if title %}
+  <h3>{{ title }}</h3>
+{% endif %}
+<div id="{{ id }}" {{ attributes.addClass(classes) }}>
+  {% for row in rows %}
+    <div{{ row.attributes }}>
+      <article class="islandora-result-card h-100">
+        {{- row.content -}}
+      </article>
+    </div>
+  {% endfor %}
+</div>

@@ -1,0 +1,18 @@
+{#
+/**
+ * @file
+ * Views override for concise public collection-card fields.
+ */
+#}
+{% if fields.did_image.content %}
+  <div class="views-field-did-image pt-3">
+    {{ fields.did_image.content }}
+  </div>
+{% endif %}
+<div class="islandora-card-body">
+  <h3>{{ fields.title.content }}</h3>
+  {% set description = fields.field_description.content %}
+  {% if description|striptags|trim %}
+    <div class="islandora-collection-summary">{{ description }}</div>
+  {% endif %}
+</div>

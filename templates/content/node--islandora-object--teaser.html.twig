@@ -1,0 +1,35 @@
+{#
+/**
+ * @file
+ * Content override for compact Islandora object teasers on browse pages.
+ */
+#}
+{%
+  set classes = [
+    'node',
+    'node--type-islandora-object',
+    'node--view-mode-teaser',
+    'islandora-browse-result',
+    node.isPromoted() ? 'is-promoted',
+    node.isSticky() ? 'is-sticky',
+    not node.isPublished() ? 'is-unpublished',
+  ]
+%}
+<article{{ attributes.addClass(classes) }}>
+  {{ title_prefix }}
+  {% if label and not page %}
+    <h2{{ title_attributes.addClass('islandora-browse-result__title') }}>
+      <a href="{{ url }}" rel="bookmark">{{ label }}</a>
+    </h2>
+  {% endif %}
+  {{ title_suffix }}
+
+  <div{{ content_attributes.addClass('islandora-browse-result__content') }}>
+    {{ content|without(
+      'display_media_entity_view_3',
+      'islandora_fits_checksum',
+      'links',
+      'flippy_pager'
+    ) }}
+  </div>
+</article>
