@@ -1,0 +1,20 @@
+{# Keep the native breadcrumb trail in a named navigation landmark. #}
+{% if breadcrumb %}
+  <nav aria-label="{{ 'Breadcrumb'|t }}">
+    <ol class="breadcrumb">
+      {% for item in breadcrumb %}
+        {% set item_attributes = item.attributes|default(create_attribute()) %}
+        {% if loop.last and not item.url %}
+          {% set item_attributes = item_attributes.addClass('active').setAttribute('aria-current', 'page') %}
+        {% endif %}
+        <li{{ item_attributes.addClass('breadcrumb-item') }}>
+          {% if item.url %}
+            <a href="{{ item.url }}">{{ item.text }}</a>
+          {% else %}
+            {{ item.text }}
+          {% endif %}
+        </li>
+      {% endfor %}
+    </ol>
+  </nav>
+{% endif %}

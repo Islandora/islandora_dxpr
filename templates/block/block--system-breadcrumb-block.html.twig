@@ -1,12 +1,7 @@
-{#
-/**
- * @file
- * Suppresses the breadcrumb block when its breadcrumb trail is empty.
- */
-#}
-{% set breadcrumb_content = content|render %}
-{% if breadcrumb_content|striptags|trim %}
-  {% include '@dxpr_theme/block.html.twig' with {
-    content: breadcrumb_content
-  } %}
+{# Preserve DXPR's block markup, but omit empty breadcrumb blocks. #}
+{% if region != 'page_title' or theme.settings.page_title_breadcrumbs %}
+  {% set breadcrumb_content = content|render %}
+  {% if breadcrumb_content|striptags|trim %}
+    {% include '@dxpr_theme/block.html.twig' with {content: breadcrumb_content} %}
+  {% endif %}
 {% endif %}
