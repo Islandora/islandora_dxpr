@@ -14,15 +14,6 @@ body {
   background-attachment: var(--dxt-setting-background-image-attachment);
 }
 
-/* Custom CSS */
-html:root {
-  --dxt-setting-body-font-face: "Ancizar Serif", Georgia, "Times New Roman", serif;
-  --dxt-setting-headings-font-face: "Ancizar Serif", Georgia, "Times New Roman", serif;
-  --dxt-setting-nav-font-face: "Ancizar Serif", Georgia, "Times New Roman", serif;
-  --dxt-setting-sitename-font-face: "Ancizar Serif", Georgia, "Times New Roman", serif;
-  --dxt-setting-blockquote-font-face: "Ancizar Serif", Georgia, "Times New Roman", serif;
-}
-
 /* Page Title Styles */
 .page-title-full-width-container:after {
   opacity: var(--dxt-setting-page-title-image-opacity);
@@ -80,50 +71,39 @@ html:root {
   height: var(--dxt-setting-header-mobile-height);
 }
 
-/* Menu Options */
-
-    #block-dxpr-theme-main-menu .dropdown-menu {
-      .dropdown {
-        color: #1a1a1a;
-
-        * {
-          color: #1a1a1a;
-        }
-      }
-    }
-  /* body font face */
+/* body font face */
 body, .tooltip {
   font-family: var(--dxt-setting-body-font-face);
   font-style: normal;
-  font-weight: 300 !important;
+  font-weight: var(--dxt-setting-body-font-weight);
 }
 
 /* nav font face */
 .dxpr-theme-header .nav {
   font-family: var(--dxt-setting-nav-font-face);
   font-style: normal;
-  font-weight: 500 !important;
+  font-weight: var(--dxt-setting-nav-font-weight);
 }
 
 /* headings font face */
-h1,.h1,h2,.h2,h3,.h3,h4,.h4,h5,.h5,h6,.h6,.display-1,.display-2,.display-3,.display-4,.display-5,.display-6,label,.field--label,.page-title {
+h1,.h1,h2,.h2,h3,.h3,h4,.h4,h5,.h5,h6,.h6,.display-1,.display-2,.display-3,.display-4,.display-5,.display-6,.page-title {
   font-family: var(--dxt-setting-headings-font-face);
   font-style: normal;
-  font-weight: 500 !important;
+  font-weight: var(--dxt-setting-headings-font-weight);
 }
 
 /* sitename font face */
 .site-name, .navbar-brand {
   font-family: var(--dxt-setting-sitename-font-face);
   font-style: normal;
-  font-weight: 500 !important;
+  font-weight: var(--dxt-setting-sitename-font-weight);
 }
 
 /* blockquote font face */
 blockquote, blockquote p {
   font-family: var(--dxt-setting-blockquote-font-face);
-  font-style: italic;
-  font-weight: 300 !important;
+  font-style: normal;
+  font-weight: var(--dxt-setting-blockquote-font-weight);
 }
 
 :root.dxpr-scheme-custom {
@@ -208,16 +188,16 @@ blockquote, blockquote p {
   --dxt-setting-background-image-attachment: fixed;
   --dxt-setting-background-image-position: center center;
   --dxt-setting-block-divider-length: 0.625rem;
-  --dxt-setting-block-divider-spacing: 1.25rem;
+  --dxt-setting-block-divider-spacing: 0;
   --dxt-setting-block-divider-thickness: 0.25rem;
-  --dxt-setting-blockquote-font-face: "Ancizar Serif", -apple-system, BlinkMacSystemFont, sans-serif;
-  --dxt-setting-blockquote-font-weight: 300;
-  --dxt-setting-blockquote-font-style: italic;
+  --dxt-setting-blockquote-font-face: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+  --dxt-setting-blockquote-font-weight: 400;
+  --dxt-setting-blockquote-font-style: normal;
   --dxt-setting-blockquote-font-size: 1.3125rem;
   --dxt-setting-blockquote-line-height: 1.5;
   --dxt-setting-blockquote-mobile-font-size: 1.125rem;
-  --dxt-setting-body-font-face: "Ancizar Serif", -apple-system, BlinkMacSystemFont, sans-serif;
-  --dxt-setting-body-font-weight: 300;
+  --dxt-setting-body-font-face: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+  --dxt-setting-body-font-weight: 400;
   --dxt-setting-body-font-style: normal;
   --dxt-setting-body-font-size: 1.0625rem;
   --dxt-setting-body-line-height: 1.7;
@@ -252,31 +232,35 @@ blockquote, blockquote p {
   --dxt-setting-header-top-height-scroll: 3.125rem;
   --dxt-setting-header-top-height-sticky-offset: 3.75rem;
   --dxt-setting-headings-bold: normal;
-  --dxt-setting-headings-font-face: "Ancizar Serif", -apple-system, BlinkMacSystemFont, sans-serif;
-  --dxt-setting-headings-font-weight: 500;
+  --dxt-setting-headings-font-face: "Sora", -apple-system, BlinkMacSystemFont, sans-serif;
+  --dxt-setting-headings-font-weight: 600;
   --dxt-setting-headings-font-style: normal;
-  --dxt-setting-headings-letter-spacing: -0.02em;
-  --dxt-setting-headings-line-height: 1.1;
+  --dxt-setting-headings-letter-spacing: 0;
+  --dxt-setting-headings-line-height: 1.2;
   --dxt-setting-headings-uppercase: none;
   --dxt-setting-layout-max-width: 82.5rem;
   --dxt-setting-logo-height: 50%;
   --dxt-setting-menu-border-size: 0.125rem;
   --dxt-setting-menu-link-spacing: 0.625rem;
-  --dxt-setting-nav-font-face: "Ancizar Serif", -apple-system, BlinkMacSystemFont, sans-serif;
+  --dxt-setting-nav-font-face: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
   --dxt-setting-nav-font-weight: 500;
   --dxt-setting-nav-font-style: normal;
+  --dxt-setting-mobile-menu-background: var(--dxt-color-header);
+  --dxt-setting-mobile-menu-text-color: var(--dxt-color-headertext);
+  --dxt-setting-mobile-menu-hover-background: var(--dxt-color-base);
+  --dxt-setting-mobile-menu-hover-text-color: var(--dxt-color-basetext);
   --dxt-setting-nav-font-size: 1.125rem;
   --dxt-setting-nav-mobile-font-size: 1.125rem;
   --dxt-setting-page-title-align: left;
-  --dxt-setting-page-title-breadcrumbs-align: right;
+  --dxt-setting-page-title-breadcrumbs-align: left;
   --dxt-setting-page-title-breadcrumbs-separator: "/";
-  --dxt-setting-page-title-height: 7.5rem;
+  --dxt-setting-page-title-height: 6rem;
   --dxt-setting-page-title-image-opacity: 1;
   --dxt-setting-page-title-image-position: center center;
   --dxt-setting-page-title-image-style: cover;
   --dxt-setting-scale-factor: 1;
-  --dxt-setting-sitename-font-face: "Ancizar Serif", -apple-system, BlinkMacSystemFont, sans-serif;
-  --dxt-setting-sitename-font-weight: 500;
+  --dxt-setting-sitename-font-face: "Sora", -apple-system, BlinkMacSystemFont, sans-serif;
+  --dxt-setting-sitename-font-weight: 600;
   --dxt-setting-sitename-font-style: normal;
   --dxt-setting-title-align: left;
   --dxt-setting-title-font-size: var(--dxt-setting-h3-font-size);

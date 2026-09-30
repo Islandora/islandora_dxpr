@@ -1,0 +1,45 @@
+<?php
+
+/**
+ * @file
+ * Deterministic media fixtures that exercise the real record template and CSS.
+ */
+
+use Drupal\Core\Entity\Display\EntityViewDisplayInterface;
+use Drupal\Core\Entity\EntityInterface;
+
+/**
+ * Implements hook_node_view_alter().
+ */
+function islandora_dxpr_spacing_test_node_view_alter(array &$build, EntityInterface $entity, EntityViewDisplayInterface $display): void {
+  if (
+    $entity->bundle() !== 'islandora_object' ||
+    !in_array($entity->label(), ['img', 'audio', 'video', 'iframe'], TRUE)
+  ) {
+    return;
+  }
+
+  $attributes = match ($entity->label()) {
+    'img' => [
+      'src' => 'data:image/svg+xml,' . rawurlencode('<svg xmlns="http://www.w3.org/2000/svg" width="600" height="300"><rect width="600" height="300" fill="#6844ca"/></svg>'),
+      'alt' => 'Spacing test image',
+      'width' => 600,
+      'height' => 300,
+    ],
+    'iframe' => ['src' => 'about:blank', 'title' => 'Document viewer'],
+    default => ['controls' => TRUE, 'preload' => 'none'],
+  };
+  $build['display_media_entity_view_1'] = [
+    '#type' => 'container',
+    '#attributes' => [
+      'id' => 'spacing-test-media',
+      'class' => ['islandora-media-display'],
+    ],
+    '#weight' => -10,
+    'viewer' => [
+      '#type' => 'html_tag',
+      '#tag' => $entity->label(),
+      '#attributes' => $attributes + ['id' => 'spacing-test-viewer'],
+    ],
+  ];
+}

@@ -1,0 +1,17 @@
+{# Group record fields below the configured media without extra spacer blocks. #}
+{% extends '@dxpr_theme/node.html.twig' %}
+
+{% block content %}
+  {% if page %}
+    {{ islandora_media }}
+    {% set metadata = content|without('links', 'flippy_pager')|render %}
+    {% if metadata|trim %}
+      <div class="islandora-metadata-group">
+        {{ metadata }}
+      </div>
+    {% endif %}
+    {{ content.links }}
+  {% else %}
+    {{ parent() }}
+  {% endif %}
+{% endblock %}

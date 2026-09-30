@@ -7,10 +7,69 @@
 
 use Drupal\Component\Serialization\Json;
 use Drupal\Component\Utility\Html;
+use Drupal\Core\Cache\CacheableDependencyInterface;
+use Drupal\Core\Cache\CacheableMetadata;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Render\Element;
 use Drupal\Core\StringTranslation\TranslatableMarkup;
 use Drupal\Core\Url;
+use Drupal\node\NodeInterface;
+
+/**
+ * Implements hook_preprocess_breadcrumb().
+ */
+function islandora_dxpr_preprocess_breadcrumb(array &$variables): void {
+  // Core can cache ancestor-only trails across sibling pages. The current
+  // title added by DXPR (or below) also varies by route and routed entity.
+  $metadata = CacheableMetadata::createFromRenderArray($variables)
+    ->addCacheContexts(['route']);
+  foreach (\Drupal::routeMatch()->getParameters() as $parameter) {
+    if ($parameter instanceof CacheableDependencyInterface) {
+      $metadata->addCacheableDependency($parameter);
+    }
+  }
+  $metadata->applyTo($variables);
+
+  // Restore only the first link DXPR removed; retain its remaining items and
+  // attributes, including the current-page title.
+  if (!empty($variables['links'])) {
+    $first_link = reset($variables['links']);
+    array_unshift($variables['breadcrumb'], [
+      'text' => $first_link->getText(),
+      'url' => $first_link->getUrl()->toString(),
+    ]);
+  }
+
+  // DXPR skips the current title when Home was the only ancestor.
+  if ($variables['breadcrumb'] && !empty(end($variables['breadcrumb'])['url'])) {
+    $route = \Drupal::routeMatch()->getRouteObject();
+    $title = $route ? \Drupal::service('title_resolver')
+      ->getTitle(\Drupal::request(), $route) : NULL;
+    if ($title) {
+      $variables['breadcrumb'][] = ['text' => $title];
+    }
+  }
+}
+
+/**
+ * Implements hook_preprocess_node().
+ */
+function islandora_dxpr_preprocess_node(array &$variables): void {
+  $node = $variables['node'];
+  if ($node->bundle() !== 'islandora_object' || empty($variables['page'])) {
+    return;
+  }
+
+  // Keep Islandora's configured viewers and downloads in display order, ahead
+  // of the record fields. No field visibility or formatter settings change.
+  $variables['islandora_media'] = [];
+  foreach (Element::children($variables['content'], TRUE) as $key) {
+    if (str_starts_with($key, 'display_media_')) {
+      $variables['islandora_media'][$key] = $variables['content'][$key];
+      unset($variables['content'][$key]);
+    }
+  }
+}
 
 /**
  * Gets an inherited theme setting across supported Drupal core versions.
@@ -51,7 +110,7 @@ function islandora_dxpr_preprocess_page(array &$variables): void {
 
     foreach (Element::children($region) as $block_key) {
       $block = &$region[$block_key];
-      if (($block['#create_placeholder'] ?? FALSE) !== TRUE) {
+      if (!isset($block['#lazy_builder'])) {
         unset($block);
         continue;
       }
@@ -677,40 +736,59 @@ function islandora_dxpr_preprocess_views_view(array &$variables): void {
 }
 
 /**
- * Implements hook_preprocess_HOOK() for image_style.
+ * Implements hook_preprocess_HOOK() for image_formatter.
  */
-function islandora_dxpr_preprocess_image_style(array &$variables): void {
-  if (($variables['style_name'] ?? '') !== 'islandora_card') {
+function islandora_dxpr_preprocess_image_formatter(array &$variables): void {
+  $item = $variables['item'];
+  $entity = $item->getEntity();
+  if ($entity->getEntityTypeId() !== 'media' || !$entity->hasField('field_media_of')) {
     return;
   }
 
-  if (!isset($variables['image']) || !is_array($variables['image'])) {
-    return;
-  }
-
-  $image = &$variables['image'];
-  $alt = trim((string) ($image['#alt'] ?? $image['#attributes']['alt'] ?? ''));
-  $uri = (string) ($image['#uri'] ?? '');
-  $path = parse_url($uri, PHP_URL_PATH) ?: $uri;
-  $filename = rawurldecode(basename($path));
-  $normalized_alt = preg_replace('/[^\p{L}\p{N}]+/u', '', $alt) ?? '';
-  $normalized_filename = preg_replace('/[^\p{L}\p{N}]+/u', '', $filename) ?? '';
-
-  // Starter content can inherit a source filename as its alternative. That
-  // adds noise beside the linked record title, while genuinely authored alt
-  // text can convey useful thumbnail information and must be preserved. The
-  // normalized comparison accommodates Drupal's filename sanitization.
+  // This fallback belongs only to the full parent record. Include the route
+  // in cacheability even when the image is rendered elsewhere unchanged.
+  CacheableMetadata::createFromRenderArray($variables)
+    ->addCacheContexts(['route'])
+    ->applyTo($variables);
+  $record = \Drupal::routeMatch()->getParameter('node');
   if (
-    $alt !== '' &&
-    $filename !== '' &&
-    (
-      strcasecmp($alt, $filename) === 0 ||
-      ($normalized_alt !== '' &&
-        strcasecmp($normalized_alt, $normalized_filename) === 0)
-    )
+    \Drupal::routeMatch()->getRouteName() !== 'entity.node.canonical' ||
+    !$record instanceof NodeInterface ||
+    $record->bundle() !== 'islandora_object' ||
+    (string) $record->id() !== (string) $entity->get('field_media_of')->target_id
   ) {
-    $image['#alt'] = '';
-    $image['#attributes']['alt'] = '';
+    return;
+  }
+
+  $alt = trim((string) (
+    $variables['image']['#attributes']['alt'] ??
+    $variables['image']['#alt'] ?? ''
+  ));
+  $filename = $item->entity?->getFilename() ?? '';
+  $normalize = static fn(string $text): string =>
+    mb_strtolower(preg_replace('/[^\p{L}\p{N}]+/u', '', $text) ?? '');
+  // Preserve intentional empty alternatives and authored descriptions.
+  if ($alt === '' || $normalize($alt) !== $normalize($filename)) {
+    return;
+  }
+
+  $parent = $entity->get('field_media_of')->entity;
+  if (!$parent) {
+    return;
+  }
+  $parent = \Drupal::service('entity.repository')
+    ->getTranslationFromContext($parent);
+  $access = $parent->access('view', NULL, TRUE);
+  $metadata = CacheableMetadata::createFromRenderArray($variables)
+    ->addCacheableDependency($parent)
+    ->addCacheableDependency($access);
+  $metadata->applyTo($variables);
+  if ($access->isAllowed()) {
+    $variables['image']['#alt'] = new TranslatableMarkup(
+      'Image for @title',
+      ['@title' => $parent->label()],
+    );
+    $variables['image']['#attributes']['alt'] = $variables['image']['#alt'];
   }
 }
 
