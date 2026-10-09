@@ -50,6 +50,46 @@ controls how search result page sizes are presented. The compact dropdown is
 the default; administrators can switch to visible page-size links when that
 interaction better fits their repository.
 
+The default typography uses Inter for body text and controls and Sora for
+headings, with system sans-serif fallbacks. Body text is 17px on desktop and
+16px on mobile; captions and controls are at least 16px. DXPR manages font
+loading through its existing font settings.
+
+Breadcrumbs ship as a block in Content Top, alongside the standard DXPR block
+placements. Administrators can move, disable, or set visibility for them in
+Structure > Block layout. The page-title breadcrumb setting applies only when
+the block is placed in Page Title.
+
+The native breadcrumb builder supplies the trail; Member Of links remain
+available in record metadata. Media and downloads precede these fields with a
+compact gap. Configure metadata groups and their headings in the site's
+Manage display configuration (for example, with Field Group); the theme does
+not add a second heading around those groups.
+
+Write descriptive alternative text on image media when cataloging content.
+The theme preserves authored descriptions and intentionally empty alternatives.
+On full record pages only, filename-only alternatives on media linked through
+`field_media_of` use the accessible parent record's title as a fallback. A title
+identifies the record; it does not replace an authored image description.
+Enable Islandora's image formatter original-file alternative-text option in
+the starter site's display configuration to reuse catalogers' descriptions for
+derivatives, including search results.
+
+Contact labels belong to site configuration. Rename the feedback contact form
+to “Contact us” in the starter site and configure its recipient under Structure
+> Contact forms. Before launch, check keyboard navigation, screen-reader output,
+200% zoom, mobile browsing, and representative large collections on the deployed
+site. Theme checks alone do not establish a VPAT or validate performance.
+
+Run `./scripts/ci.sh` with Docker to execute the functional tests and Chromium
+spacing regression test. The browser test renders image, audio, video, and
+document-viewer fixtures through the real record template at desktop, tablet,
+and phone widths. It measures the media-to-metadata gap (1–1.5rem), checks for
+excess whitespace inside the viewer wrapper, and rejects horizontal overflow.
+Viewer fixtures are local and do not require repository media services. Advisory
+blocking and post-install audits are disabled only in the disposable test
+container so the suite can use the dependencies supplied by each CI image.
+
 For Facets 3 exposed-filter Views, use the contributed
 [Views Exposed Filters Summary](https://www.drupal.org/project/views_filters_summary)
 module and its accessibility companion for selected-value state, individual

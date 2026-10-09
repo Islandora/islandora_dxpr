@@ -5,13 +5,23 @@ declare(strict_types=1);
 namespace Drupal\Tests\islandora_dxpr\Functional;
 
 use Drupal\block\Entity\Block;
+use Drupal\Component\Utility\Html;
 use Drupal\Core\Form\FormState;
+use Drupal\Core\Link;
 use Drupal\Core\Render\Element;
+use Drupal\Core\Routing\RouteMatch;
 use Drupal\Core\StringTranslation\TranslatableMarkup;
+use Drupal\Core\Template\Attribute;
 use Drupal\Core\Url;
+use Drupal\field\Entity\FieldConfig;
+use Drupal\field\Entity\FieldStorageConfig;
+use Drupal\file\Entity\File;
+use Drupal\media\Entity\Media;
 use Drupal\Tests\BrowserTestBase;
+use Drupal\Tests\media\Traits\MediaTypeCreationTrait;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
+use Symfony\Component\Routing\Route;
 
 /**
  * Verifies that Islandora DXPR installs and renders as the default theme.
@@ -20,11 +30,14 @@ use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
 #[RunTestsInSeparateProcesses]
 final class ThemeSmokeTest extends BrowserTestBase {
 
+  use MediaTypeCreationTrait;
+
   /**
    * {@inheritdoc}
    */
   protected static $modules = [
     'block',
+    'contact',
     'dxpr_theme_helper',
     'islandora',
     'media_library_form_element',
@@ -82,7 +95,7 @@ final class ThemeSmokeTest extends BrowserTestBase {
         ->get('search_results_per_page_control'),
     );
     $this->assertSame(
-      '0Ancizar+Serif:300',
+      '0Inter:400',
       $this->config('islandora_dxpr.settings')->get('body_font_face'),
     );
     $this->assertSame(
@@ -152,7 +165,7 @@ final class ThemeSmokeTest extends BrowserTestBase {
       $defaults_css,
     );
     $this->assertMatchesRegularExpression(
-      '/--dxt-setting-body-font-face:\s*["\']Ancizar Serif["\']/',
+      '/--dxt-setting-body-font-face:\s*["\']Inter["\']/',
       $defaults_css,
     );
 
@@ -776,7 +789,7 @@ final class ThemeSmokeTest extends BrowserTestBase {
       'css',
       '.islandora-content-top',
     );
-    $this->assertSession()->elementNotExists(
+    $this->assertSession()->elementExists(
       'css',
       '#page-title-full-width-container',
     );
@@ -816,31 +829,171 @@ final class ThemeSmokeTest extends BrowserTestBase {
       'css',
       'link[rel~="icon"][href*="islandora_dxpr/favicon.png"]',
     );
+  }
 
-    $filename_alt = [
-      'style_name' => 'islandora_card',
-      'image' => [
-        '#alt' => 'postcard4.tif.thumbnail.jpg',
-        '#uri' => 'fedora://2026-07/postcard4.tif_.thumbnail.jpg',
-        '#attributes' => ['alt' => 'postcard4.tif.thumbnail.jpg'],
+  /**
+   * Tests configured breadcrumbs, image alternatives, and menu labels.
+   */
+  public function testAccessibleRecordDefaults(): void {
+    $this->container->get('theme.manager')->getActiveTheme();
+    $this->drupalCreateContentType(['type' => 'islandora_object']);
+    $node = $this->drupalCreateNode([
+      'type' => 'islandora_object',
+      'title' => 'Library & parade',
+    ]);
+    $record = [
+      'node' => $node,
+      'page' => TRUE,
+      'content' => [
+        'display_media_original_download' => ['#markup' => 'Download', '#weight' => 10],
+        'body' => ['#markup' => 'Record description'],
+        'display_media_entity_view_1' => ['#markup' => 'Viewer', '#weight' => -10],
       ],
     ];
-    \islandora_dxpr_preprocess_image_style($filename_alt);
-    $this->assertSame('', $filename_alt['image']['#alt']);
-
-    $authored_alt = [
-      'style_name' => 'islandora_card',
-      'image' => [
-        '#alt' => 'A parade passing the public library',
-        '#uri' => 'fedora://2026-07/parade.tif_.thumbnail.jpg',
-        '#attributes' => ['alt' => 'A parade passing the public library'],
-      ],
-    ];
-    \islandora_dxpr_preprocess_image_style($authored_alt);
+    \islandora_dxpr_preprocess_node($record);
     $this->assertSame(
-      'A parade passing the public library',
-      $authored_alt['image']['#alt'],
+      ['display_media_entity_view_1', 'display_media_original_download'],
+      array_keys($record['islandora_media']),
     );
+    $this->assertSame(['body'], Element::children($record['content']));
+    $this->assertArrayNotHasKey('islandora_metadata_title', $record);
+    $this->drupalGet($node->toUrl());
+    $this->assertSession()->elementNotExists(
+      'css', '.islandora-metadata-group > h2',
+    );
+    $this->assertSession()->elementTextContains(
+      'css', 'nav[aria-label="Breadcrumb"]', 'Home',
+    );
+    $this->assertSession()->elementTextContains(
+      'css', '.breadcrumb-item.active[aria-current="page"]', 'Library & parade',
+    );
+    $this->assertSession()->elementsCount('css', 'nav[aria-label="Breadcrumb"]', 1);
+    $sibling = $this->drupalCreateNode([
+      'type' => 'islandora_object',
+      'title' => 'Another record',
+    ]);
+    $this->drupalGet($sibling->toUrl());
+    $this->assertSession()->elementTextContains(
+      'css', '.breadcrumb-item.active[aria-current="page"]', 'Another record',
+    );
+    $sibling->setTitle('Updated record')->save();
+    $this->drupalGet($sibling->toUrl());
+    $this->assertSession()->elementTextContains(
+      'css', '.breadcrumb-item.active[aria-current="page"]', 'Updated record',
+    );
+    $breadcrumbs = Block::load('islandora_dxpr_breadcrumbs');
+    $this->assertNotNull($breadcrumbs);
+    $this->assertSame('content_top', $breadcrumbs->getRegion());
+    $this->config('islandora_dxpr.settings')->set('page_title_breadcrumbs', 0)->save();
+    $breadcrumbs->getPlugin()->setConfiguration([
+      'label' => 'Record navigation',
+      'label_display' => 'visible',
+    ] + $breadcrumbs->getPlugin()->getConfiguration());
+    $breadcrumbs->setRegion('content_bottom')->save();
+    $this->drupalGet($node->toUrl());
+    $this->assertSession()->elementTextContains(
+      'css', '.block-system-breadcrumb-block .block-title', 'Record navigation',
+    );
+    $this->assertSession()->elementsCount('css', 'nav[aria-label="Breadcrumb"]', 1);
+    $breadcrumbs->disable()->save();
+    $this->drupalGet($node->toUrl());
+    $this->assertSession()->elementNotExists('css', 'nav[aria-label="Breadcrumb"]');
+
+    // Preserve DXPR's current item and attributes when restoring Home.
+    $attributes = new Attribute(['class' => ['active'], 'data-example' => 'kept']);
+    $trail = [
+      'links' => [Link::createFromRoute('Home', '<front>')],
+      'breadcrumb' => [['text' => 'Current record', 'attributes' => $attributes]],
+    ];
+    \islandora_dxpr_preprocess_breadcrumb($trail);
+    $this->assertCount(2, $trail['breadcrumb']);
+    $this->assertSame($attributes, $trail['breadcrumb'][1]['attributes']);
+    $this->assertSame('Current record', $trail['breadcrumb'][1]['text']);
+
+    $media_type = $this->createMediaType('image');
+    $source_field = $media_type->getSource()->getConfiguration()['source_field'];
+    FieldStorageConfig::create([
+      'entity_type' => 'media',
+      'field_name' => 'field_media_of',
+      'type' => 'entity_reference',
+      'settings' => ['target_type' => 'node'],
+    ])->save();
+    FieldConfig::create([
+      'entity_type' => 'media',
+      'bundle' => $media_type->id(),
+      'field_name' => 'field_media_of',
+    ])->save();
+    $file = File::create([
+      'uri' => 'public://parade_.jpg',
+      'filename' => 'parade_.jpg',
+    ]);
+    $file->save();
+    $media = Media::create([
+      'bundle' => $media_type->id(),
+      'name' => 'parade.jpg',
+      'field_media_of' => $node->id(),
+      $source_field => [
+        'target_id' => $file->id(),
+        'alt' => 'parade.jpg',
+      ],
+    ]);
+    $original_route_match = $this->container->get('current_route_match');
+    $this->container->set('current_route_match', new RouteMatch(
+      'entity.node.canonical', new Route('/node/{node}'),
+      ['node' => $node], ['node' => $node->id()],
+    ));
+    foreach ([
+      'parade.jpg' => 'Image for Library & parade',
+      'A marching band passes the library' => 'A marching band passes the library',
+      '' => '',
+    ] as $alt => $expected) {
+      $image = [
+        'item' => $media->get($source_field)->first(),
+        'image' => ['#alt' => $alt],
+      ];
+      \islandora_dxpr_preprocess_image_formatter($image);
+      $render_image = $image['image'] + [
+        '#theme' => 'image',
+        '#uri' => $file->getFileUri(),
+      ];
+      $markup = (string) $this->container->get('renderer')->renderRoot($render_image);
+      $this->assertSame(
+        $expected,
+        Html::load($markup)->getElementsByTagName('img')->item(0)->getAttribute('alt'),
+      );
+    }
+    $this->container->set('current_route_match', $original_route_match);
+    $search_image = [
+      'item' => $media->get($source_field)->first(),
+      'image' => ['#alt' => 'parade.jpg'],
+    ];
+    \islandora_dxpr_preprocess_image_formatter($search_image);
+    $this->assertSame('parade.jpg', $search_image['image']['#alt']);
+    $this->assertContains('route', $search_image['#cache']['contexts']);
+    $this->container->set('current_route_match', new RouteMatch(
+      'entity.node.canonical', new Route('/node/{node}'),
+      ['node' => $node], ['node' => $node->id()],
+    ));
+
+    $node->setUnpublished()->save();
+    $media->set('field_media_of', $node);
+    $this->container->get('entity_type.manager')
+      ->getAccessControlHandler('node')->resetCache();
+    $image['image']['#alt'] = 'parade.jpg';
+    \islandora_dxpr_preprocess_image_formatter($image);
+    $this->assertSame('parade.jpg', $image['image']['#alt']);
+    $this->assertContains('user.permissions', $image['#cache']['contexts']);
+
+    $items = [
+      [
+        'title' => 'Contact',
+        'url' => Url::fromRoute('contact.site_page'),
+      ],
+    ];
+    \islandora_dxpr_mark_current_menu_items($items, 'contact.site_page', [], '/contact');
+    $this->assertSame('Contact', (string) $items[0]['title']);
+    $this->container->set('current_route_match', $original_route_match);
+    $this->assertTrue($items[0]['is_current']);
   }
 
   /**

@@ -1,0 +1,8 @@
+name: Islandora DXPR spacing fixtures
+type: module
+description: Provides representative media markup for browser layout tests.
+package: Testing
+hidden: true
+core_version_requirement: '^10.3 || ^11'
+dependencies:
+  - drupal:node
