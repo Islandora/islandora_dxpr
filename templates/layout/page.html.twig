@@ -99,8 +99,9 @@
   <div id="main-content" role="main" class="islandora-main-landmark islandora-main-content-target js-quickedit-main-content clearfix" tabindex="-1">
     {{ block('islandora_page_title') }}
 
+    {# Viewers such as Mirador render an empty mount point that JS fills in. #}
     {% set content_top_content = block('islandora_content_top') %}
-    {% if _self.hasContent(content_top_content) %}
+    {% if content_top_content|trim %}
       {% set content_top_container = theme.settings.full_width_containers.cnt_content_top ? 'dxpr-theme-fluid' : 'container' %}
       <div class="{{ content_top_container }} content-top-container islandora-content-top">
         {% if not theme.settings.full_width_containers.cnt_content_top %}
