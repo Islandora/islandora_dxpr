@@ -2739,38 +2739,174 @@ iframe.pdf {
   }
 }
 
+.islandora-print-only {
+  display: none;
+}
+
 @media print {
+  @page {
+    margin: 1cm 1.5cm 1.5cm;
+  }
+
   .dxpr-theme-header,
   .dxpr-theme-secondary-header,
   .dxpr-theme-footer,
   .region-sidebar-first,
   .region-sidebar-second,
+  .region-highlighted,
+  #toolbar-administration,
+  .contextual,
+  .tabs,
+  .messages,
+  .breadcrumb,
   .action-links,
+  .pager,
   .advanced_search_result_pager,
   .islandora_advanced_search_result_pager,
+  .block-views-blockoai-pmh-item-links-block-1,
+  .node__links,
+  .islandora-card-meta,
+  .islandora-media-display:has(.openseadragon-viewer, iframe, audio, video),
   .openseadragon-viewer,
   .block-mirador,
-  iframe.pdf {
+  .block-mirador-block,
+  iframe,
+  audio,
+  video,
+  form select,
+  form .form-actions,
+  button {
     display: none !important;
   }
 
+  /* The citation text exists only after a style is chosen on screen. */
+  .block-citation-select-block:not(:has(#formatted-bibliography:not(:empty))) {
+    display: none !important;
+  }
+
+  /* Geolocation already renders the coordinates as hidden text. */
+  .geolocation-map-wrapper > :not(.geolocation-location),
+  .geolocation-location .location-title {
+    display: none !important;
+  }
+
+  .geolocation-location.js-hide,
+  .islandora-print-only {
+    display: block !important;
+  }
+
   body,
-  .main-container {
+  .main-container,
+  .page-title-full-width-container {
     background: #fff !important;
+    border: 0;
     color: #000 !important;
   }
 
-  .main-container {
+  body {
+    font-size: 11pt;
+  }
+
+  /* The admin toolbar reserves its height with an !important body offset. */
+  html body.html.user-logged-in:is(.toolbar-fixed, .toolbar-horizontal, .toolbar-vertical) {
+    padding-top: 0 !important;
+  }
+
+  .main-container,
+  .page-title-container,
+  .islandora-content-top {
+    margin: 0 !important;
     max-width: none;
-    padding: 0;
+    padding: 0 !important;
+  }
+
+  .main-container > .row > [class*="col-"] {
+    flex: 0 0 100%;
+    max-width: 100%;
+  }
+
+  .page-title-container .page-title {
+    font-size: 20pt;
+    line-height: 1.15;
+    margin: 0 0 0.75rem;
+  }
+
+  img {
+    break-inside: avoid;
+    max-height: 8cm;
+    max-width: 100%;
+    width: auto;
+  }
+
+  .islandora-print-still {
+    margin-bottom: 0.75rem;
   }
 
   .islandora-metadata-group {
+    border: 0 !important;
     box-shadow: none !important;
+  }
+
+  .islandora-object.full .islandora-metadata-group > .field,
+  .view-solr-search-content .views-row {
+    border-bottom: 0.5pt solid #999;
+    break-inside: avoid;
+    padding: 0.3rem 0;
+  }
+
+  .islandora-object.full
+    .islandora-metadata-group
+    > .field:not(.field--name-field-media-of) {
+    display: grid !important;
+    gap: 0 1rem;
+    grid-template-columns: 28% minmax(0, 1fr);
+    padding: 0.3rem 0;
+  }
+
+  .view-solr-search-content .views-row {
+    display: grid;
+    gap: 0 1rem;
+    grid-template-columns: 3cm minmax(0, 1fr);
+  }
+
+  .view-solr-search-content .views-field-did-image img {
+    max-height: 3cm;
+    width: 100%;
+  }
+
+  .view-solr-search-content .islandora-card-body {
+    display: block;
+    padding: 0;
+  }
+
+  .view-solr-search-content h3 {
+    font-size: 12pt;
+    margin: 0;
+  }
+
+  .main-container :is(.field--type-text-long, .field--type-text-with-summary),
+  .islandora-card-description {
+    margin-top: 0;
+    max-width: none;
+    -webkit-line-clamp: unset;
   }
 
   a {
     color: #000 !important;
     text-decoration: underline;
+  }
+
+  .islandora-metadata-group a[href^="http"]::after {
+    content: " (" attr(href) ")";
+    font-size: 9pt;
+    overflow-wrap: anywhere;
+  }
+
+  .islandora-print-record {
+    border-top: 0.5pt solid #000;
+    font-size: 10pt;
+    margin-top: 1rem;
+    overflow-wrap: anywhere;
+    padding-top: 0.5rem;
   }
 }
