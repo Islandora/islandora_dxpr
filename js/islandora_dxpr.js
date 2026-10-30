@@ -301,4 +301,100 @@
         });
     },
   };
+
+  // Viewer canvases do not print, and print will not wait for a lazy image,
+  // so load a print-only IIIF still up front.
+  function addPrintStill(viewer, src, fallback) {
+    const still = document.createElement('img');
+    still.className = 'islandora-print-only islandora-print-still';
+    still.alt = '';
+    if (fallback) {
+      still.onerror = () => {
+        still.onerror = null;
+        still.src = fallback;
+      };
+    }
+    still.src = src;
+    viewer.closest('.islandora-media-display, section.block')?.after(still);
+  }
+
+  function addIiifStill(viewer, service) {
+    const base = service.replace(/\/info\.json$/, '');
+    // Cantaloupe refuses to upscale images smaller than the request.
+    addPrintStill(
+      viewer,
+      `${base}/full/!1000,1000/0/default.jpg`,
+      `${base}/full/max/0/default.jpg`,
+    );
+  }
+
+  Drupal.behaviors.islandoraDxprPrintStill = {
+    attach(context, settings) {
+      const seadragons = settings.openseadragon || {};
+      once('islandora-dxpr-print-still', '.openseadragon-viewer', context).forEach(
+        (viewer) => {
+          const sources = seadragons[viewer.id]?.options?.tileSources;
+          const source = Array.isArray(sources) ? sources[0] : sources;
+          if (typeof source === 'string') {
+            addIiifStill(viewer, source);
+          }
+        },
+      );
+
+      const miradors = settings.mirador?.viewers || {};
+      once('islandora-dxpr-print-still', '.mirador-viewer', context).forEach(
+        (viewer) => {
+          const manifest = miradors[`#${viewer.id}`]?.windows?.[0]?.manifestId;
+          if (!manifest) {
+            return;
+          }
+          fetch(manifest)
+            .then((response) => response.json())
+            .then((json) => {
+              const resource =
+                json.sequences?.[0]?.canvases?.[0]?.images?.[0]?.resource ??
+                json.items?.[0]?.items?.[0]?.items?.[0]?.body;
+              const service = [resource?.service].flat()[0];
+              const id = service?.['@id'] ?? service?.id;
+              if (id) {
+                addIiifStill(viewer, id);
+              }
+            })
+            .catch(() => {});
+        },
+      );
+
+      // PDF.js runs in a same-origin iframe; copy its first rendered page.
+      once('islandora-dxpr-print-still', 'iframe.pdf', context).forEach(
+        (frame) => {
+          let started = false;
+          const copyFirstPage = () => {
+            const app = frame.contentWindow?.PDFViewerApplication;
+            if (started || !app) {
+              return;
+            }
+            started = true;
+            app.initializedPromise.then(() => {
+              const copy = (canvas) =>
+                addPrintStill(frame, canvas.toDataURL('image/jpeg'));
+              const page = app.pdfViewer?.getPageView(0);
+              if (page?.canvas && page.renderingState === 3) {
+                copy(page.canvas);
+                return;
+              }
+              const onRender = ({ pageNumber, source }) => {
+                if (pageNumber === 1) {
+                  app.eventBus.off('pagerendered', onRender);
+                  copy(source.canvas);
+                }
+              };
+              app.eventBus.on('pagerendered', onRender);
+            });
+          };
+          frame.addEventListener('load', copyFirstPage);
+          copyFirstPage();
+        },
+      );
+    },
+  };
 })(Drupal, once);

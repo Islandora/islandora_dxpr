@@ -11,6 +11,7 @@
       </div>
     {% endif %}
     {{ content.links }}
+    <p class="islandora-print-only islandora-print-record">{{ url('entity.node.canonical', {'node': node.id}) }}</p>
   {% else %}
     {{ parent() }}
   {% endif %}
