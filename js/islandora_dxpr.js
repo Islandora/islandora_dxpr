@@ -301,4 +301,33 @@
         });
     },
   };
+
+  // OpenSeadragon's canvas does not print, and print will not wait for a
+  // lazy image, so load a print-only IIIF still up front.
+  Drupal.behaviors.islandoraDxprPrintStill = {
+    attach(context, settings) {
+      const viewers = settings.openseadragon || {};
+      once('islandora-dxpr-print-still', '.openseadragon-viewer', context).forEach(
+        (viewer) => {
+          const sources = viewers[viewer.id]?.options?.tileSources;
+          const source = Array.isArray(sources) ? sources[0] : sources;
+          if (typeof source !== 'string') {
+            return;
+          }
+
+          const base = source.replace(/\/info\.json$/, '');
+          const still = document.createElement('img');
+          still.className = 'islandora-print-only islandora-print-still';
+          still.alt = '';
+          // Cantaloupe refuses to upscale images smaller than the request.
+          still.onerror = () => {
+            still.onerror = null;
+            still.src = `${base}/full/max/0/default.jpg`;
+          };
+          still.src = `${base}/full/!1000,1000/0/default.jpg`;
+          viewer.closest('.islandora-media-display, .block')?.after(still);
+        },
+      );
+    },
+  };
 })(Drupal, once);
