@@ -302,30 +302,55 @@
     },
   };
 
-  // OpenSeadragon's canvas does not print, and print will not wait for a
-  // lazy image, so load a print-only IIIF still up front.
+  // Viewer canvases do not print, and print will not wait for a lazy image,
+  // so load a print-only IIIF still up front.
+  function addPrintStill(viewer, service) {
+    const base = service.replace(/\/info\.json$/, '');
+    const still = document.createElement('img');
+    still.className = 'islandora-print-only islandora-print-still';
+    still.alt = '';
+    // Cantaloupe refuses to upscale images smaller than the request.
+    still.onerror = () => {
+      still.onerror = null;
+      still.src = `${base}/full/max/0/default.jpg`;
+    };
+    still.src = `${base}/full/!1000,1000/0/default.jpg`;
+    viewer.closest('.islandora-media-display, section.block')?.after(still);
+  }
+
   Drupal.behaviors.islandoraDxprPrintStill = {
     attach(context, settings) {
-      const viewers = settings.openseadragon || {};
+      const seadragons = settings.openseadragon || {};
       once('islandora-dxpr-print-still', '.openseadragon-viewer', context).forEach(
         (viewer) => {
-          const sources = viewers[viewer.id]?.options?.tileSources;
+          const sources = seadragons[viewer.id]?.options?.tileSources;
           const source = Array.isArray(sources) ? sources[0] : sources;
-          if (typeof source !== 'string') {
+          if (typeof source === 'string') {
+            addPrintStill(viewer, source);
+          }
+        },
+      );
+
+      const miradors = settings.mirador?.viewers || {};
+      once('islandora-dxpr-print-still', '.mirador-viewer', context).forEach(
+        (viewer) => {
+          const manifest = miradors[`#${viewer.id}`]?.windows?.[0]?.manifestId;
+          if (!manifest) {
             return;
           }
-
-          const base = source.replace(/\/info\.json$/, '');
-          const still = document.createElement('img');
-          still.className = 'islandora-print-only islandora-print-still';
-          still.alt = '';
-          // Cantaloupe refuses to upscale images smaller than the request.
-          still.onerror = () => {
-            still.onerror = null;
-            still.src = `${base}/full/max/0/default.jpg`;
-          };
-          still.src = `${base}/full/!1000,1000/0/default.jpg`;
-          viewer.closest('.islandora-media-display, .block')?.after(still);
+          fetch(manifest)
+            .then((response) => response.json())
+            .then((json) => {
+              const resource =
+                json.sequences?.[0]?.canvases?.[0]?.images?.[0]?.resource ??
+                json.items?.[0]?.items?.[0]?.items?.[0]?.body;
+              const service = [resource?.service].flat()[0];
+              const id = service?.['@id'] ?? service?.id;
+              if (id) {
+                addPrintStill(viewer, id);
+              }
+            })
+            .catch(() => {});
         },
       );
     },
